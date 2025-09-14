@@ -23,7 +23,6 @@ extern TaskHandle_t vSchedulerGetNextTask(void);
 extern void vTriggerContextSwitch(void);
 
 /* Internal function prototypes */
-static bool bIsValidTaskHandle(TaskHandle_t xTask);
 static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB, 
                                        TaskFunction_t pxTaskCode,
                                        const char *pcName,
@@ -206,7 +205,7 @@ SystemMonitor_t* pxGetSystemMonitor(void)
 /**
  * @brief Validate task handle
  */
-static bool bIsValidTaskHandle(TaskHandle_t xTask)
+bool bIsValidTaskHandle(TaskHandle_t xTask)
 {
     TaskControlBlock_t *pxTCB;
     

@@ -122,6 +122,7 @@ TaskHandle_t pxGetCurrentTask(void);
 void vSetCurrentTask(TaskHandle_t xTask);
 TaskHandle_t vSchedulerGetNextTask(void);
 void vTriggerContextSwitch(void);
+bool bIsValidTaskHandle(TaskHandle_t xTask);
 
 /* Board-specific functions */
 void vBoardInit(void);

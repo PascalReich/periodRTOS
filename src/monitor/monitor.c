@@ -4,6 +4,7 @@
  */
 
 #include "periodRTOS.h"
+#include <stdio.h>
 
 /* External variables */
 extern TaskControlBlock_t xTaskList[MAX_TASKS];

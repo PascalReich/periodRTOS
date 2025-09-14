@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 
+/* NVIC priority bits */
+#define __NVIC_PRIO_BITS 4
+
 /* System Core Clock */
 extern uint32_t SystemCoreClock;
 
@@ -389,6 +392,8 @@ typedef struct {
 
 /* NVIC functions */
 void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority);
+void NVIC_EnableIRQ(IRQn_Type IRQn);
+void NVIC_DisableIRQ(IRQn_Type IRQn);
 
 /* IRQn_Type definition */
 typedef enum {

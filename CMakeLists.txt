@@ -29,9 +29,10 @@ set(KERNEL_SOURCES
     src/kernel/kernel.c
     src/kernel/context_switch.S
     src/scheduler/rm_scheduler.c
-    src/tasks/task_manager.c
+#    src/tasks/task_manager.c
     src/timer/systick.c
     src/monitor/monitor.c
+    src/hal/stm32_hal.c
 )
 
 # Board-specific sources
