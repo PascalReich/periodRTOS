@@ -386,16 +386,6 @@ typedef struct {
 #define FLASH_ACR_DCEN_Pos           10
 #define FLASH_ACR_DCEN_Msk           (1UL << FLASH_ACR_DCEN_Pos)
 
-/* Interrupt numbers */
-#define SysTick_IRQn                 -1
-#define PendSV_IRQn                  -2
-#define SVCall_IRQn                  -5
-
-/* NVIC functions */
-void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority);
-void NVIC_EnableIRQ(IRQn_Type IRQn);
-void NVIC_DisableIRQ(IRQn_Type IRQn);
-
 /* IRQn_Type definition */
 typedef enum {
     NonMaskableInt_IRQn = -14,
@@ -486,5 +476,10 @@ typedef enum {
     HASH_RNG_IRQn = 80,
     FPU_IRQn = 81
 } IRQn_Type;
+
+/* NVIC functions */
+void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority);
+void NVIC_EnableIRQ(IRQn_Type IRQn);
+void NVIC_DisableIRQ(IRQn_Type IRQn);
 
 #endif /* STM32F4XX_H */
