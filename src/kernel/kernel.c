@@ -10,7 +10,7 @@
 
 /* Global variables */
 TaskControlBlock_t xTaskList[MAX_TASKS];
-static TaskHandle_t xCurrentTask = NULL;
+TaskHandle_t xCurrentTask = NULL;
 static TaskHandle_t xIdleTask = NULL;
 static uint32_t ulNextTaskID = 1;
 static uint32_t ulTaskCount = 0;

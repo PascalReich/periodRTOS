@@ -49,7 +49,7 @@ PendSV_Handler:
     push {lr}                        /* Save return address */
     
     /* Get current task TCB pointer */
-    ldr r0, =pxCurrentTaskTCB
+    ldr r0, =xCurrentTask
     ldr r0, [r0]
     
     /* Save current stack pointer to current task's TCB */
@@ -59,7 +59,7 @@ PendSV_Handler:
     bl vSchedulerGetNextTask
     
     /* Get next task TCB pointer */
-    ldr r1, =pxCurrentTaskTCB
+    ldr r1, =xCurrentTask
     str r0, [r1]                     /* Update current task pointer */
     
     /* Load next task's stack pointer */

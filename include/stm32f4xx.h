@@ -280,6 +280,8 @@ typedef struct {
 #define RCC_AHB1ENR_GPIOFEN_Msk      (1UL << RCC_AHB1ENR_GPIOFEN_Pos)
 #define RCC_AHB1ENR_GPIOGEN_Pos      6
 #define RCC_AHB1ENR_GPIOGEN_Msk      (1UL << RCC_AHB1ENR_GPIOGEN_Pos)
+#define RCC_AHB1ENR_GPIOGEN          RCC_AHB1ENR_GPIOGEN_Msk
+#define RCC_AHB1ENR_GPIODEN          RCC_AHB1ENR_GPIODEN_Msk
 #define RCC_AHB1ENR_GPIOHEN_Pos      7
 #define RCC_AHB1ENR_GPIOHEN_Msk      (1UL << RCC_AHB1ENR_GPIOHEN_Pos)
 #define RCC_AHB1ENR_GPIOIEN_Pos      8
@@ -372,7 +374,6 @@ typedef struct {
 #define SysTick_CTRL_TICKINT_Pos     1
 #define SysTick_CTRL_TICKINT_Msk     (1UL << SysTick_CTRL_TICKINT_Pos)
 #define SysTick_CTRL_CLKSOURCE_Pos   2
-#define SysTick_CTRL_CLKSOURCE_Msk   (1UL << SysTick_CTRL_CLKSOURCE_Pos)
 #define SysTick_CTRL_CLKSOURCE_Msk   (1UL << SysTick_CTRL_CLKSOURCE_Pos)
 
 #define FLASH_ACR_LATENCY_Pos        0
