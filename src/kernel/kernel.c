@@ -5,17 +5,16 @@
 
 #include "periodRTOS.h"
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 
 /* Global variables */
 TaskControlBlock_t xTaskList[MAX_TASKS];
 TaskHandle_t xCurrentTask = NULL;
-static TaskHandle_t xIdleTask = NULL;
+TaskHandle_t xIdleTask = NULL;
 static uint32_t ulNextTaskID = 1;
 static uint32_t ulTaskCount = 0;
 static SchedulerState_t eSchedulerState = SCHEDULER_NOT_STARTED;
-static SystemMonitor_t xSystemMonitor = {0};
+SystemMonitor_t xSystemMonitor = {0};
 
 /* External function prototypes */
 extern void vSchedulerInit(void);
@@ -271,21 +270,24 @@ static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB,
  */
 static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
 {
-    uint32_t *pxStack;
+    /* For embedded systems, we'll use static stack allocation */
+    /* Each task gets a fixed stack size allocated at compile time */
+    static uint32_t ulStackMemory[MAX_TASKS][DEFAULT_STACK_SIZE / sizeof(uint32_t)];
+    static uint32_t ulStackAllocated[MAX_TASKS] = {0};
     
-    /* Allocate stack memory */
-    pxStack = (uint32_t *)malloc(pxTCB->ulStackSize * sizeof(uint32_t));
-    if (pxStack == NULL) {
-        /* Handle error - for now, we'll use a static allocation approach */
-        /* This will be improved in the next iteration */
-        return;
+    /* Find an available stack slot */
+    for (uint32_t i = 0; i < MAX_TASKS; i++) {
+        if (ulStackAllocated[i] == 0) {
+            ulStackAllocated[i] = 1;
+            pxTCB->pxStack = ulStackMemory[i];
+            pxTCB->pxTopOfStack = &ulStackMemory[i][pxTCB->ulStackSize - 1];
+            return;
+        }
     }
     
-    pxTCB->pxStack = pxStack;
-    pxTCB->pxTopOfStack = &pxStack[pxTCB->ulStackSize - 1];
-    
-    /* Initialize stack with initial context */
-    /* This will be implemented in the context switching module */
+    /* If we get here, no stack available */
+    pxTCB->pxStack = NULL;
+    pxTCB->pxTopOfStack = NULL;
 }
 
 /**

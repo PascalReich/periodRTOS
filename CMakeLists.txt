@@ -33,6 +33,7 @@ set(KERNEL_SOURCES
     src/timer/systick.c
     src/monitor/monitor.c
     src/hal/stm32_hal.c
+    src/hal/syscalls.c
 )
 
 # Board-specific sources
