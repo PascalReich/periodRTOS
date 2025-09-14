@@ -9,6 +9,7 @@
 /* External variables */
 extern TaskControlBlock_t xTaskList[MAX_TASKS];
 extern TaskHandle_t xIdleTask;
+extern SystemMonitor_t xSystemMonitor;
 
 /* Scheduler state */
 static TaskHandle_t pxReadyList[MAX_PRIORITY_LEVELS];

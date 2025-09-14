@@ -5,6 +5,8 @@
 
 #include "stm32f4xx.h"
 
+void vConfigureSystemClock(void);
+
 /**
  * @brief Set interrupt priority
  */
@@ -51,7 +53,7 @@ void SystemInit(void)
     SCB->CPACR |= ((3UL << 10*2) | (3UL << 11*2));
     
     /* Configure flash latency for 168MHz */
-    FLASH->ACR = FLASH_ACR_LATENCY_5WS | FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
+    FLASH->ACR = FLASH_ACR_LATENCY_5WS | FLASH_ACR_PRFTEN_Pos | FLASH_ACR_ICEN_Pos | FLASH_ACR_DCEN_Pos;
     
     /* Set system clock to 168MHz */
     vConfigureSystemClock();
@@ -68,10 +70,10 @@ uint32_t SystemCoreClock = 168000000;
 void vConfigureSystemClock(void)
 {
     /* Enable HSE (High Speed External oscillator) */
-    RCC->CR |= RCC_CR_HSEON;
+    RCC->CR |= RCC_CR_HSEON_Pos;
     
     /* Wait for HSE to be ready */
-    while (!(RCC->CR & RCC_CR_HSERDY));
+    while (!(RCC->CR & RCC_CR_HSERDY_Pos));
     
     /* Configure PLL */
     RCC->PLLCFGR = RCC_PLLCFGR_PLLSRC_HSE |  /* HSE as PLL source */
@@ -81,10 +83,10 @@ void vConfigureSystemClock(void)
                    (7 << RCC_PLLCFGR_PLLQ_Pos);   /* PLLQ = 7 */
     
     /* Enable PLL */
-    RCC->CR |= RCC_CR_PLLON;
+    RCC->CR |= RCC_CR_PLLON_Pos;
     
     /* Wait for PLL to be ready */
-    while (!(RCC->CR & RCC_CR_PLLRDY));
+    while (!(RCC->CR & RCC_CR_PLLRDY_Pos));
     
     /* Configure AHB, APB1, APB2 prescalers */
     RCC->CFGR = RCC_CFGR_HPRE_DIV1 |      /* AHB = 168MHz */
@@ -95,7 +97,7 @@ void vConfigureSystemClock(void)
     RCC->CFGR |= RCC_CFGR_SW_PLL;
     
     /* Wait for PLL to be selected */
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+    while ((RCC->CFGR & RCC_CFGR_SWS_Pos) != RCC_CFGR_SWS_PLL);
     
     /* Update SystemCoreClock variable */
     SystemCoreClock = 168000000;
