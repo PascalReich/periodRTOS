@@ -5,6 +5,13 @@ project(periodRTOS VERSION 1.0.0 LANGUAGES C ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Check if we're cross-compiling
+if(CMAKE_CROSSCOMPILING)
+    message(STATUS "Cross-compiling for ARM Cortex-M4")
+else()
+    message(STATUS "Native compilation")
+endif()
+
 # Compiler flags for ARM Cortex-M4
 set(MCU_FLAGS "-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MCU_FLAGS}")
