@@ -231,12 +231,16 @@ typedef struct {
 /* Register bit definitions */
 #define RCC_CR_HSEON_Pos             16
 #define RCC_CR_HSEON_Msk             (1UL << RCC_CR_HSEON_Pos)
+#define RCC_CR_HSEON                 RCC_CR_HSEON_Msk
 #define RCC_CR_HSERDY_Pos            17
 #define RCC_CR_HSERDY_Msk            (1UL << RCC_CR_HSERDY_Pos)
+#define RCC_CR_HSERDY                RCC_CR_HSERDY_Msk
 #define RCC_CR_PLLON_Pos             24
 #define RCC_CR_PLLON_Msk             (1UL << RCC_CR_PLLON_Pos)
+#define RCC_CR_PLLON                 RCC_CR_PLLON_Msk
 #define RCC_CR_PLLRDY_Pos            25
 #define RCC_CR_PLLRDY_Msk            (1UL << RCC_CR_PLLRDY_Pos)
+#define RCC_CR_PLLRDY                RCC_CR_PLLRDY_Msk
 
 #define RCC_PLLCFGR_PLLSRC_Pos       22
 #define RCC_PLLCFGR_PLLSRC_Msk       (3UL << RCC_PLLCFGR_PLLSRC_Pos)
@@ -255,6 +259,7 @@ typedef struct {
 #define RCC_CFGR_SW_PLL              (2UL << RCC_CFGR_SW_Pos)
 #define RCC_CFGR_SWS_Pos             2
 #define RCC_CFGR_SWS_Msk             (3UL << RCC_CFGR_SWS_Pos)
+#define RCC_CFGR_SWS                 RCC_CFGR_SWS_Msk
 #define RCC_CFGR_SWS_PLL             (2UL << RCC_CFGR_SWS_Pos)
 #define RCC_CFGR_HPRE_Pos            4
 #define RCC_CFGR_HPRE_Msk            (0xFUL << RCC_CFGR_HPRE_Pos)
@@ -369,6 +374,24 @@ typedef struct {
 #define GPIO_ODR_OD15_Pos            15
 #define GPIO_ODR_OD15_Msk            (1UL << GPIO_ODR_OD15_Pos)
 
+/* GPIO ODR bit definitions (convenience macros) */
+#define GPIO_ODR_OD0                 GPIO_ODR_OD0_Msk
+#define GPIO_ODR_OD1                 GPIO_ODR_OD1_Msk
+#define GPIO_ODR_OD2                 GPIO_ODR_OD2_Msk
+#define GPIO_ODR_OD3                 GPIO_ODR_OD3_Msk
+#define GPIO_ODR_OD4                 GPIO_ODR_OD4_Msk
+#define GPIO_ODR_OD5                 GPIO_ODR_OD5_Msk
+#define GPIO_ODR_OD6                 GPIO_ODR_OD6_Msk
+#define GPIO_ODR_OD7                 GPIO_ODR_OD7_Msk
+#define GPIO_ODR_OD8                 GPIO_ODR_OD8_Msk
+#define GPIO_ODR_OD9                 GPIO_ODR_OD9_Msk
+#define GPIO_ODR_OD10                GPIO_ODR_OD10_Msk
+#define GPIO_ODR_OD11                GPIO_ODR_OD11_Msk
+#define GPIO_ODR_OD12                GPIO_ODR_OD12_Msk
+#define GPIO_ODR_OD13                GPIO_ODR_OD13_Msk
+#define GPIO_ODR_OD14                GPIO_ODR_OD14_Msk
+#define GPIO_ODR_OD15                GPIO_ODR_OD15_Msk
+
 #define SysTick_CTRL_ENABLE_Pos      0
 #define SysTick_CTRL_ENABLE_Msk      (1UL << SysTick_CTRL_ENABLE_Pos)
 #define SysTick_CTRL_TICKINT_Pos     1
@@ -381,10 +404,13 @@ typedef struct {
 #define FLASH_ACR_LATENCY_5WS        (5UL << FLASH_ACR_LATENCY_Pos)
 #define FLASH_ACR_PRFTEN_Pos         8
 #define FLASH_ACR_PRFTEN_Msk         (1UL << FLASH_ACR_PRFTEN_Pos)
+#define FLASH_ACR_PRFTEN             FLASH_ACR_PRFTEN_Msk
 #define FLASH_ACR_ICEN_Pos           9
 #define FLASH_ACR_ICEN_Msk           (1UL << FLASH_ACR_ICEN_Pos)
+#define FLASH_ACR_ICEN               FLASH_ACR_ICEN_Msk
 #define FLASH_ACR_DCEN_Pos           10
 #define FLASH_ACR_DCEN_Msk           (1UL << FLASH_ACR_DCEN_Pos)
+#define FLASH_ACR_DCEN               FLASH_ACR_DCEN_Msk
 
 /* IRQn_Type definition */
 typedef enum {
