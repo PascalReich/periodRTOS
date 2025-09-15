@@ -4,7 +4,7 @@
  */
 
 #include "periodRTOS.h"
-#include "stm32f4xx.h"
+#include "stm32f303xx.h"
 
 #define NULL 0
 

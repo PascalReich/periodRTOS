@@ -4,7 +4,7 @@
  */
 
 #include "periodRTOS.h"
-#include "stm32f4xx.h"
+#include "stm32f303xx.h"
 
 /* Systick configuration */
 #define SYSTICK_RELOAD_VALUE    (SystemCoreClock / SYSTICK_FREQ_HZ - 1)
