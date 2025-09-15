@@ -3,7 +3,7 @@
  * @brief Simple STM32 HAL implementation for periodRTOS
  */
 
-#include "stm32f4xx.h"
+#include "stm32f303xx.h"
 
 void vConfigureSystemClock(void);
 
@@ -50,8 +50,8 @@ void SystemInit(void)
     /* The watchdog might be enabled by default and causing resets */
     WWDG->CR &= ~WWDG_CR_WDGA;  /* Disable watchdog */
     
-    /* Minimal SystemInit - just set the system clock variable */
-    SystemCoreClock = 16000000;  /* Use 16MHz HSI for now */
+    /* Minimal SystemInit - just set the system clock variable (STM32F3 HSI = 8MHz) */
+    SystemCoreClock = 8000000;
     
     /* TODO: Add proper initialization later when system is stable */
 }
@@ -59,7 +59,7 @@ void SystemInit(void)
 /**
  * @brief Get system core clock
  */
-uint32_t SystemCoreClock = 168000000;
+uint32_t SystemCoreClock = 8000000;
 
 /**
  * @brief Watchdog interrupt handler
@@ -76,36 +76,6 @@ void WWDG_IRQHandler(void)
  */
 void vConfigureSystemClock(void)
 {
-    /* Enable HSE (High Speed External oscillator) */
-    RCC->CR |= RCC_CR_HSEON;
-    
-    /* Wait for HSE to be ready */
-    while (!(RCC->CR & RCC_CR_HSERDY));
-    
-    /* Configure PLL */
-    RCC->PLLCFGR = RCC_PLLCFGR_PLLSRC_HSE |  /* HSE as PLL source */
-                   (8 << RCC_PLLCFGR_PLLM_Pos) |  /* PLLM = 8 */
-                   (336 << RCC_PLLCFGR_PLLN_Pos) | /* PLLN = 336 */
-                   (0 << RCC_PLLCFGR_PLLP_Pos) |  /* PLLP = 2 */
-                   (7 << RCC_PLLCFGR_PLLQ_Pos);   /* PLLQ = 7 */
-    
-    /* Enable PLL */
-    RCC->CR |= RCC_CR_PLLON;
-    
-    /* Wait for PLL to be ready */
-    while (!(RCC->CR & RCC_CR_PLLRDY));
-    
-    /* Configure AHB, APB1, APB2 prescalers */
-    RCC->CFGR = RCC_CFGR_HPRE_DIV1 |      /* AHB = 168MHz */
-                RCC_CFGR_PPRE1_DIV4 |     /* APB1 = 42MHz */
-                RCC_CFGR_PPRE2_DIV2;      /* APB2 = 84MHz */
-    
-    /* Select PLL as system clock */
-    RCC->CFGR |= RCC_CFGR_SW_PLL;
-    
-    /* Wait for PLL to be selected */
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
-    
-    /* Update SystemCoreClock variable */
-    SystemCoreClock = 168000000;
+    /* For STM32F3: keep default HSI (8MHz). Optionally enable HSE and set prescalers later. */
+    SystemCoreClock = 8000000;
 }

@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Check if we're cross-compiling
 if(CMAKE_CROSSCOMPILING)
-    message(STATUS "Cross-compiling for ARM Cortex-M4")
+    message(STATUS "Cross-compiling for ARM Cortex-M4 (STM32F3)")
 else()
     message(STATUS "Native compilation")
 endif()
@@ -36,11 +36,10 @@ set(KERNEL_SOURCES
     src/hal/syscalls.c
 )
 
-# Board-specific sources
+# Board-specific sources (STM32F3 Discovery)
 set(BOARD_SOURCES
-    boards/stm32f4_discovery/board_init.c
-    #boards/stm32f4_discovery/startup_stm32f407xx.s
-    boards/stm32f4_discovery/init.c
+    boards/stm32f3_discovery/board_init.c
+    boards/stm32f3_discovery/init.c
 )
 
 # Create kernel library
@@ -49,8 +48,8 @@ add_library(periodRTOS_kernel STATIC ${KERNEL_SOURCES})
 # Create board library
 add_library(periodRTOS_board STATIC ${BOARD_SOURCES})
 
-# Linker script
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/boards/stm32f4_discovery/STM32F407VGTx_FLASH.ld)
+# Linker script (STM32F303)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/boards/stm32f3_discovery/STM32F303x_FLASH.ld)
 
 # Example application
 add_executable(example_app
@@ -74,6 +73,6 @@ set_target_properties(example_app PROPERTIES
 )
 
 # Print build information
-message(STATUS "Building periodRTOS for ARM Cortex-M4")
-message(STATUS "Target: STM32F4 Discovery")
+message(STATUS "Building periodRTOS for ARM Cortex-M4 (STM32F3)")
+message(STATUS "Target: STM32F3 Discovery")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")

@@ -17,37 +17,24 @@ extern uint32_t SystemCoreClock;
 /* System Init function */
 void SystemInit(void);
 
-/* Memory and peripheral base addresses */
-#define FLASH_BASE            0x08000000UL
+/* Memory and peripheral base addresses (STM32F303 layout) */
+#define FLASH_BASE            0x40022000UL
 #define SRAM_BASE             0x20000000UL
 #define PERIPH_BASE           0x40000000UL
 #define SRAM_BB_BASE          0x22000000UL
 #define PERIPH_BB_BASE        0x42000000UL
 
-/* AHB1 peripherals */
+/* AHB1 peripherals (STM32F303) */
 #define AHB1PERIPH_BASE       (PERIPH_BASE + 0x00020000UL)
-#define RCC_BASE              (AHB1PERIPH_BASE + 0x3800UL)
-#define GPIOA_BASE            (AHB1PERIPH_BASE + 0x0000UL)
-#define GPIOB_BASE            (AHB1PERIPH_BASE + 0x0400UL)
-#define GPIOC_BASE            (AHB1PERIPH_BASE + 0x0800UL)
-#define GPIOD_BASE            (AHB1PERIPH_BASE + 0x0C00UL)
-#define GPIOE_BASE            (AHB1PERIPH_BASE + 0x1000UL)
-#define GPIOF_BASE            (AHB1PERIPH_BASE + 0x1400UL)
-#define GPIOG_BASE            (AHB1PERIPH_BASE + 0x1800UL)
-#define GPIOH_BASE            (AHB1PERIPH_BASE + 0x1C00UL)
-#define GPIOI_BASE            (AHB1PERIPH_BASE + 0x2000UL)
+#define RCC_BASE              (AHB1PERIPH_BASE + 0x1000UL)
 
-/* APB1 peripherals */
+/* APB1 peripherals (STM32F303) */
 #define APB1PERIPH_BASE       PERIPH_BASE
 #define TIM2_BASE             (APB1PERIPH_BASE + 0x0000UL)
 #define TIM3_BASE             (APB1PERIPH_BASE + 0x0400UL)
 #define TIM4_BASE             (APB1PERIPH_BASE + 0x0800UL)
-#define TIM5_BASE             (APB1PERIPH_BASE + 0x0C00UL)
 #define TIM6_BASE             (APB1PERIPH_BASE + 0x1000UL)
 #define TIM7_BASE             (APB1PERIPH_BASE + 0x1400UL)
-#define TIM12_BASE            (APB1PERIPH_BASE + 0x1800UL)
-#define TIM13_BASE            (APB1PERIPH_BASE + 0x1C00UL)
-#define TIM14_BASE            (APB1PERIPH_BASE + 0x2000UL)
 #define RTC_BASE              (APB1PERIPH_BASE + 0x2800UL)
 #define WWDG_BASE             (APB1PERIPH_BASE + 0x2C00UL)
 
@@ -75,37 +62,31 @@ typedef struct {
 #define UART5_BASE            (APB1PERIPH_BASE + 0x5000UL)
 #define I2C1_BASE             (APB1PERIPH_BASE + 0x5400UL)
 #define I2C2_BASE             (APB1PERIPH_BASE + 0x5800UL)
-#define I2C3_BASE             (APB1PERIPH_BASE + 0x5C00UL)
 #define PWR_BASE              (APB1PERIPH_BASE + 0x7000UL)
 
-/* APB2 peripherals */
+/* APB2 peripherals (STM32F303) */
 #define APB2PERIPH_BASE       (PERIPH_BASE + 0x00010000UL)
-#define TIM1_BASE             (APB2PERIPH_BASE + 0x0000UL)
-#define TIM8_BASE             (APB2PERIPH_BASE + 0x0400UL)
-#define USART1_BASE           (APB2PERIPH_BASE + 0x1000UL)
-#define USART6_BASE           (APB2PERIPH_BASE + 0x1400UL)
-#define ADC1_BASE             (APB2PERIPH_BASE + 0x2000UL)
-#define ADC2_BASE             (APB2PERIPH_BASE + 0x2100UL)
-#define ADC3_BASE             (APB2PERIPH_BASE + 0x2200UL)
-#define ADC_BASE              (APB2PERIPH_BASE + 0x2300UL)
-#define SDIO_BASE             (APB2PERIPH_BASE + 0x2C00UL)
+#define SYSCFG_BASE           (APB2PERIPH_BASE + 0x0000UL)
+#define EXTI_BASE             (APB2PERIPH_BASE + 0x0400UL)
+#define TIM1_BASE             (APB2PERIPH_BASE + 0x2C00UL)
 #define SPI1_BASE             (APB2PERIPH_BASE + 0x3000UL)
-#define SYSCFG_BASE           (APB2PERIPH_BASE + 0x3800UL)
-#define EXTI_BASE             (APB2PERIPH_BASE + 0x3C00UL)
-#define TIM9_BASE             (APB2PERIPH_BASE + 0x4000UL)
-#define TIM10_BASE            (APB2PERIPH_BASE + 0x4400UL)
-#define TIM11_BASE            (APB2PERIPH_BASE + 0x4800UL)
+#define TIM8_BASE             (APB2PERIPH_BASE + 0x3400UL)
+#define USART1_BASE           (APB2PERIPH_BASE + 0x3800UL)
+#define TIM15_BASE            (APB2PERIPH_BASE + 0x4000UL)
+#define TIM16_BASE            (APB2PERIPH_BASE + 0x4400UL)
+#define TIM17_BASE            (APB2PERIPH_BASE + 0x4800UL)
 
-/* AHB2 peripherals */
-#define AHB2PERIPH_BASE       (PERIPH_BASE + 0x00020000UL)
-#define DCMI_BASE             (AHB2PERIPH_BASE + 0x50000UL)
-#define CRYP_BASE             (AHB2PERIPH_BASE + 0x60000UL)
-#define HASH_BASE             (AHB2PERIPH_BASE + 0x60400UL)
-#define RNG_BASE              (AHB2PERIPH_BASE + 0x60800UL)
+/* AHB2 peripherals (STM32F303 GPIO) */
+#define AHB2PERIPH_BASE       0x48000000UL
+#define GPIOA_BASE            (AHB2PERIPH_BASE + 0x0000UL)
+#define GPIOB_BASE            (AHB2PERIPH_BASE + 0x0400UL)
+#define GPIOC_BASE            (AHB2PERIPH_BASE + 0x0800UL)
+#define GPIOD_BASE            (AHB2PERIPH_BASE + 0x0C00UL)
+#define GPIOE_BASE            (AHB2PERIPH_BASE + 0x1000UL)
+#define GPIOF_BASE            (AHB2PERIPH_BASE + 0x1400UL)
 
-/* AHB3 peripherals */
-#define AHB3PERIPH_BASE       (PERIPH_BASE + 0x00030000UL)
-#define FSMC_BASE             AHB3PERIPH_BASE
+/* AHB3 peripherals (STM32F303) */
+#define AHB3PERIPH_BASE       0x50000000UL
 
 /* Core peripherals */
 #define SCS_BASE              0xE000E000UL
@@ -132,40 +113,21 @@ typedef struct {
 #define NVIC                ((NVIC_Type *) NVIC_BASE)
 #define SCB                 ((SCB_Type *) SCB_BASE)
 
-/* RCC register definitions */
+/* RCC register definitions (STM32F303) */
 typedef struct {
-    volatile uint32_t CR;
-    volatile uint32_t PLLCFGR;
-    volatile uint32_t CFGR;
-    volatile uint32_t CIR;
-    volatile uint32_t AHB1RSTR;
-    volatile uint32_t AHB2RSTR;
-    volatile uint32_t AHB3RSTR;
-    volatile uint32_t RESERVED0;
-    volatile uint32_t APB1RSTR;
-    volatile uint32_t APB2RSTR;
-    volatile uint32_t RESERVED1[2];
-    volatile uint32_t AHB1ENR;
-    volatile uint32_t AHB2ENR;
-    volatile uint32_t AHB3ENR;
-    volatile uint32_t RESERVED2;
-    volatile uint32_t APB1ENR;
-    volatile uint32_t APB2ENR;
-    volatile uint32_t RESERVED3[2];
-    volatile uint32_t AHB1LPENR;
-    volatile uint32_t AHB2LPENR;
-    volatile uint32_t AHB3LPENR;
-    volatile uint32_t RESERVED4;
-    volatile uint32_t APB1LPENR;
-    volatile uint32_t APB2LPENR;
-    volatile uint32_t RESERVED5[2];
-    volatile uint32_t BDCR;
-    volatile uint32_t CSR;
-    volatile uint32_t RESERVED6[2];
-    volatile uint32_t SSCGR;
-    volatile uint32_t PLLI2SCFGR;
-    volatile uint32_t PLLSAICFGR;
-    volatile uint32_t DCKCFGR;
+    volatile uint32_t CR;         /* 0x00 */
+    volatile uint32_t CFGR;       /* 0x04 */
+    volatile uint32_t CIR;        /* 0x08 */
+    volatile uint32_t APB2RSTR;   /* 0x0C */
+    volatile uint32_t APB1RSTR;   /* 0x10 */
+    volatile uint32_t AHBENR;     /* 0x14 */
+    volatile uint32_t APB2ENR;    /* 0x18 */
+    volatile uint32_t APB1ENR;    /* 0x1C */
+    volatile uint32_t BDCR;       /* 0x20 */
+    volatile uint32_t CSR;        /* 0x24 */
+    volatile uint32_t AHBRSTR;    /* 0x28 */
+    volatile uint32_t CFGR2;      /* 0x2C */
+    volatile uint32_t CFGR3;      /* 0x30 */
 } RCC_TypeDef;
 
 /* GPIO register definitions */
@@ -287,26 +249,20 @@ typedef struct {
 #define RCC_CFGR_PPRE2_Msk           (7UL << RCC_CFGR_PPRE2_Pos)
 #define RCC_CFGR_PPRE2_DIV2          (4UL << RCC_CFGR_PPRE2_Pos)
 
-#define RCC_AHB1ENR_GPIOAEN_Pos      0
-#define RCC_AHB1ENR_GPIOAEN_Msk      (1UL << RCC_AHB1ENR_GPIOAEN_Pos)
-#define RCC_AHB1ENR_GPIOBEN_Pos      1
-#define RCC_AHB1ENR_GPIOBEN_Msk      (1UL << RCC_AHB1ENR_GPIOBEN_Pos)
-#define RCC_AHB1ENR_GPIOCEN_Pos      2
-#define RCC_AHB1ENR_GPIOCEN_Msk      (1UL << RCC_AHB1ENR_GPIOCEN_Pos)
-#define RCC_AHB1ENR_GPIODEN_Pos      3
-#define RCC_AHB1ENR_GPIODEN_Msk      (1UL << RCC_AHB1ENR_GPIODEN_Pos)
-#define RCC_AHB1ENR_GPIOEEN_Pos      4
-#define RCC_AHB1ENR_GPIOEEN_Msk      (1UL << RCC_AHB1ENR_GPIOEEN_Pos)
-#define RCC_AHB1ENR_GPIOFEN_Pos      5
-#define RCC_AHB1ENR_GPIOFEN_Msk      (1UL << RCC_AHB1ENR_GPIOFEN_Pos)
-#define RCC_AHB1ENR_GPIOGEN_Pos      6
-#define RCC_AHB1ENR_GPIOGEN_Msk      (1UL << RCC_AHB1ENR_GPIOGEN_Pos)
-#define RCC_AHB1ENR_GPIOGEN          RCC_AHB1ENR_GPIOGEN_Msk
-#define RCC_AHB1ENR_GPIODEN          RCC_AHB1ENR_GPIODEN_Msk
-#define RCC_AHB1ENR_GPIOHEN_Pos      7
-#define RCC_AHB1ENR_GPIOHEN_Msk      (1UL << RCC_AHB1ENR_GPIOHEN_Pos)
-#define RCC_AHB1ENR_GPIOIEN_Pos      8
-#define RCC_AHB1ENR_GPIOIEN_Msk      (1UL << RCC_AHB1ENR_GPIOIEN_Pos)
+/* RCC AHB enable bits (STM32F303) */
+#define RCC_AHBENR_IOPAEN_Pos        17
+#define RCC_AHBENR_IOPAEN_Msk        (1UL << RCC_AHBENR_IOPAEN_Pos)
+#define RCC_AHBENR_IOPBEN_Pos        18
+#define RCC_AHBENR_IOPBEN_Msk        (1UL << RCC_AHBENR_IOPBEN_Pos)
+#define RCC_AHBENR_IOPCEN_Pos        19
+#define RCC_AHBENR_IOPCEN_Msk        (1UL << RCC_AHBENR_IOPCEN_Pos)
+#define RCC_AHBENR_IOPDEN_Pos        20
+#define RCC_AHBENR_IOPDEN_Msk        (1UL << RCC_AHBENR_IOPDEN_Pos)
+#define RCC_AHBENR_IOPEEN_Pos        21
+#define RCC_AHBENR_IOPEEN_Msk        (1UL << RCC_AHBENR_IOPEEN_Pos)
+#define RCC_AHBENR_IOPFEN_Pos        22
+#define RCC_AHBENR_IOPFEN_Msk        (1UL << RCC_AHBENR_IOPFEN_Pos)
+#define RCC_AHBENR_IOPEEN            RCC_AHBENR_IOPEEN_Msk
 
 #define GPIO_MODER_MODER0_Pos        0
 #define GPIO_MODER_MODER0_Msk        (3UL << GPIO_MODER_MODER0_Pos)
@@ -428,7 +384,7 @@ typedef struct {
 #define FLASH_ACR_DCEN_Msk           (1UL << FLASH_ACR_DCEN_Pos)
 #define FLASH_ACR_DCEN               FLASH_ACR_DCEN_Msk
 
-/* IRQn_Type definition */
+/* IRQn_Type definition (STM32F303) */
 typedef enum {
     NonMaskableInt_IRQn = -14,
     MemoryManagement_IRQn = -12,
@@ -446,25 +402,25 @@ typedef enum {
     RCC_IRQn = 5,
     EXTI0_IRQn = 6,
     EXTI1_IRQn = 7,
-    EXTI2_IRQn = 8,
+    EXTI2_TS_IRQn = 8,
     EXTI3_IRQn = 9,
     EXTI4_IRQn = 10,
-    DMA1_Stream0_IRQn = 11,
-    DMA1_Stream1_IRQn = 12,
-    DMA1_Stream2_IRQn = 13,
-    DMA1_Stream3_IRQn = 14,
-    DMA1_Stream4_IRQn = 15,
-    DMA1_Stream5_IRQn = 16,
-    DMA1_Stream6_IRQn = 17,
-    ADC_IRQn = 18,
-    CAN1_TX_IRQn = 19,
-    CAN1_RX0_IRQn = 20,
-    CAN1_RX1_IRQn = 21,
-    CAN1_SCE_IRQn = 22,
+    DMA1_Channel1_IRQn = 11,
+    DMA1_Channel2_IRQn = 12,
+    DMA1_Channel3_IRQn = 13,
+    DMA1_Channel4_IRQn = 14,
+    DMA1_Channel5_IRQn = 15,
+    DMA1_Channel6_IRQn = 16,
+    DMA1_Channel7_IRQn = 17,
+    ADC1_2_IRQn = 18,
+    USB_HP_CAN_TX_IRQn = 19,
+    USB_LP_CAN_RX0_IRQn = 20,
+    CAN_RX1_IRQn = 21,
+    CAN_SCE_IRQn = 22,
     EXTI9_5_IRQn = 23,
-    TIM1_BRK_TIM9_IRQn = 24,
-    TIM1_UP_TIM10_IRQn = 25,
-    TIM1_TRG_COM_TIM11_IRQn = 26,
+    TIM1_BRK_TIM15_IRQn = 24,
+    TIM1_UP_TIM16_IRQn = 25,
+    TIM1_TRG_COM_TIM17_IRQn = 26,
     TIM1_CC_IRQn = 27,
     TIM2_IRQn = 28,
     TIM3_IRQn = 29,
@@ -480,42 +436,12 @@ typedef enum {
     USART3_IRQn = 39,
     EXTI15_10_IRQn = 40,
     RTC_Alarm_IRQn = 41,
-    OTG_FS_WKUP_IRQn = 42,
-    TIM8_BRK_TIM12_IRQn = 43,
-    TIM8_UP_TIM13_IRQn = 44,
-    TIM8_TRG_COM_TIM14_IRQn = 45,
+    USBWakeUp_IRQn = 42,
+    TIM8_BRK_IRQn = 43,
+    TIM8_UP_IRQn = 44,
+    TIM8_TRG_COM_IRQn = 45,
     TIM8_CC_IRQn = 46,
-    DMA1_Stream7_IRQn = 47,
-    FSMC_IRQn = 48,
-    SDIO_IRQn = 49,
-    TIM5_IRQn = 50,
-    SPI3_IRQn = 51,
-    UART4_IRQn = 52,
-    UART5_IRQn = 53,
-    TIM6_DAC_IRQn = 54,
-    TIM7_IRQn = 55,
-    DMA2_Stream0_IRQn = 56,
-    DMA2_Stream1_IRQn = 57,
-    DMA2_Stream2_IRQn = 58,
-    DMA2_Stream3_IRQn = 59,
-    DMA2_Stream4_IRQn = 60,
-    CAN2_TX_IRQn = 63,
-    CAN2_RX0_IRQn = 64,
-    CAN2_RX1_IRQn = 65,
-    CAN2_SCE_IRQn = 66,
-    OTG_FS_IRQn = 67,
-    DMA2_Stream5_IRQn = 68,
-    DMA2_Stream6_IRQn = 69,
-    DMA2_Stream7_IRQn = 70,
-    USART6_IRQn = 71,
-    I2C3_EV_IRQn = 72,
-    I2C3_ER_IRQn = 73,
-    OTG_HS_EP1_OUT_IRQn = 74,
-    OTG_HS_EP1_IN_IRQn = 75,
-    OTG_HS_WKUP_IRQn = 76,
-    OTG_HS_IRQn = 77,
-    DCMI_IRQn = 78,
-    HASH_RNG_IRQn = 80,
+    ADC3_IRQn = 47,
     FPU_IRQn = 81
 } IRQn_Type;
 
