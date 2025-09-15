@@ -39,7 +39,8 @@ set(KERNEL_SOURCES
 # Board-specific sources
 set(BOARD_SOURCES
     boards/stm32f4_discovery/board_init.c
-    boards/stm32f4_discovery/startup_stm32f407xx.s
+    #boards/stm32f4_discovery/startup_stm32f407xx.s
+    boards/stm32f4_discovery/init.c
 )
 
 # Create kernel library
