@@ -6,6 +6,8 @@
 #include "periodRTOS.h"
 #include "stm32f4xx.h"
 
+#define NULL 0
+
 /* Task handles */
 static TaskHandle_t xTask1Handle = NULL;
 static TaskHandle_t xTask2Handle = NULL;
@@ -15,7 +17,7 @@ static TaskHandle_t xTask3Handle = NULL;
 static void vTask1(void *pvParameters);
 static void vTask2(void *pvParameters);
 static void vTask3(void *pvParameters);
-static void vIdleTask(void *pvParameters);
+//static void vIdleTask(void *pvParameters);
 
 /**
  * @brief Task 1 - High frequency task (100ms period)
@@ -84,13 +86,13 @@ static void vTask3(void *pvParameters)
         
         /* Print task information every 10 iterations */
         if (ulTask3Counter % 10 == 0) {
-            vGetTaskInfo(xTask1Handle, pcBuffer, sizeof(pcBuffer));
+            //vGetTaskInfo(xTask1Handle, pcBuffer, sizeof(pcBuffer));
             /* In a real system, this would be sent via UART */
             
-            vGetTaskInfo(xTask2Handle, pcBuffer, sizeof(pcBuffer));
+            //vGetTaskInfo(xTask2Handle, pcBuffer, sizeof(pcBuffer));
             /* In a real system, this would be sent via UART */
             
-            vGetTaskInfo(xTask3Handle, pcBuffer, sizeof(pcBuffer));
+            //vGetTaskInfo(xTask3Handle, pcBuffer, sizeof(pcBuffer));
             /* In a real system, this would be sent via UART */
         }
         
@@ -105,7 +107,7 @@ static void vTask3(void *pvParameters)
 /**
  * @brief Idle task - runs when no other tasks are ready
  */
-static void vIdleTask(void *pvParameters)
+void vIdleTask(void *pvParameters)
 {
     while (1) {
         /* Idle task work - toggle LED 3 */

@@ -21,6 +21,8 @@ set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${MCU_FLAGS}")
 set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
+
 # Include directories
 include_directories(include)
 
@@ -63,9 +65,18 @@ target_link_libraries(example_app
 
 target_link_options(example_app PRIVATE 
     -T ${LINKER_SCRIPT}
+#    -Map system.map
     -Wl,--gc-sections
     -Wl,--print-memory-usage
+    -save-temps=obj
 )
+
+target_link_options(example_app
+  PUBLIC
+    LINKER:-Map=foo.map
+)
+
+
 
 # Set output directory
 set_target_properties(example_app PROPERTIES
