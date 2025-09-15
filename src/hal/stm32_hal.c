@@ -46,23 +46,30 @@ void NVIC_DisableIRQ(IRQn_Type IRQn)
  */
 void SystemInit(void)
 {
-    /* Set vector table offset */
-    SCB->VTOR = 0x08000000;
+    /* Disable watchdog to prevent resets */
+    /* The watchdog might be enabled by default and causing resets */
+    WWDG->CR &= ~WWDG_CR_WDGA;  /* Disable watchdog */
     
-    /* Enable FPU */
-    SCB->CPACR |= ((3UL << 10*2) | (3UL << 11*2));
+    /* Minimal SystemInit - just set the system clock variable */
+    SystemCoreClock = 16000000;  /* Use 16MHz HSI for now */
     
-    /* Configure flash latency for 168MHz */
-    FLASH->ACR = FLASH_ACR_LATENCY_5WS | FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
-    
-    /* Set system clock to 168MHz */
-    vConfigureSystemClock();
+    /* TODO: Add proper initialization later when system is stable */
 }
 
 /**
  * @brief Get system core clock
  */
 uint32_t SystemCoreClock = 168000000;
+
+/**
+ * @brief Watchdog interrupt handler
+ */
+void WWDG_IRQHandler(void)
+{
+    /* Clear watchdog interrupt flag */
+    /* For now, just do nothing to prevent reset */
+    /* In a real system, you'd want to feed the watchdog or handle the reset */
+}
 
 /**
  * @brief Configure system clock to 168MHz

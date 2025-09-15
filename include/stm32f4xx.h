@@ -50,6 +50,22 @@ void SystemInit(void);
 #define TIM14_BASE            (APB1PERIPH_BASE + 0x2000UL)
 #define RTC_BASE              (APB1PERIPH_BASE + 0x2800UL)
 #define WWDG_BASE             (APB1PERIPH_BASE + 0x2C00UL)
+
+/* WWDG register definitions */
+typedef struct {
+    volatile uint32_t CR;
+    volatile uint32_t CFR;
+    volatile uint32_t SR;
+} WWDG_TypeDef;
+
+#define WWDG                 ((WWDG_TypeDef *) WWDG_BASE)
+
+/* WWDG Control Register (WWDG_CR) */
+#define WWDG_CR_T_Pos                0
+#define WWDG_CR_T_Msk                (0x7FUL << WWDG_CR_T_Pos)
+#define WWDG_CR_WDGA_Pos             7
+#define WWDG_CR_WDGA_Msk             (1UL << WWDG_CR_WDGA_Pos)
+#define WWDG_CR_WDGA                 WWDG_CR_WDGA_Msk
 #define IWDG_BASE             (APB1PERIPH_BASE + 0x3000UL)
 #define SPI2_BASE             (APB1PERIPH_BASE + 0x3800UL)
 #define SPI3_BASE             (APB1PERIPH_BASE + 0x3C00UL)
