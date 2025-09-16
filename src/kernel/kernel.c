@@ -130,9 +130,39 @@ void vTaskStartScheduler(void)
     /* Set scheduler state */
     eSchedulerState = SCHEDULER_RUNNING;
     xSystemMonitor.eSchedulerState = SCHEDULER_RUNNING;
+
+    /*Get next task*/
+    TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
+
+    vSetCurrentTask(next);
+
+    asm volatile (
+        "mov r0, %0"        // Move the value of the operand into r1
+        :                   // No output operands
+        : "r" (next)        // Input operand: next, assigned to a general-purpose register
+        : "r0"              // Clobbered register: r1 is modified by the assembly instruction
+    );
     
     /* Start the first task */
+    vInitialContextSwitch();
+}
+
+void vStartContextSwitch() {
+
+    /*Get task*/
+    TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
+    TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
+
+    asm volatile (
+        "mov r0, %0;"        // Move the current task of the operand into r0
+        "mov r1, %1;"        // Move the next of the operand into r1
+        :                   // No output operands
+        : "r" (curr), "r" (next)        // Input operands
+        : "r0"              // Clobbered register: r1 is modified by the assembly instruction
+    );
+
     vContextSwitch();
+    
 }
 
 /**
@@ -141,7 +171,7 @@ void vTaskStartScheduler(void)
 void vTaskYield(void)
 {
     if (eSchedulerState == SCHEDULER_RUNNING) {
-        vContextSwitch();
+        vStartContextSwitch();
     }
 }
 
@@ -247,7 +277,15 @@ static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB,
     pxTCB->ulPeriod = ulPeriod;
     pxTCB->ulDeadline = ulDeadline;
     pxTCB->ulStackSize = ulStackSize / sizeof(uint32_t); /* Convert to words */
-    pxTCB->ulTaskID = ulNextTaskID++;
+    if (!ulPeriod){ // this should be the idle task
+        if (!xIdleTask) { // idle task not init yet
+            pxTCB->ulTaskID = 0;
+        } else { // second idle task??
+            *((void*)0x0); // deref a null ptr
+        }
+    } else {
+        pxTCB->ulTaskID = ulNextTaskID++;
+    }
     
     /* Copy task name */
     strncpy(pxTCB->pcTaskName, pcName, sizeof(pxTCB->pcTaskName) - 1);
@@ -263,6 +301,10 @@ static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB,
     pxTCB->ulContextSwitchCount = 0;
     pxTCB->ulDeadlineMissCount = 0;
     pxTCB->bDeadlineMissed = false;
+}
+
+static void vInitializeTaskStack(void* sp) {
+
 }
 
 /**
@@ -281,6 +323,8 @@ static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
             ulStackAllocated[i] = 1;
             pxTCB->pxStack = ulStackMemory[i];
             pxTCB->pxTopOfStack = &ulStackMemory[i][pxTCB->ulStackSize - 1];
+            pxTCB->pxTopOfStack += 28; // compensate for 8 registers and stack pointer
+            *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
             return;
         }
     }

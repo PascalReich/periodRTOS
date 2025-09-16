@@ -13,6 +13,22 @@
 
 /**
  * @brief Save current task context and restore next task context
+ * @param R0: Pointer to next task's TCB
+ */
+    .global vInitialContextSwitch
+    .type vInitialContextSwitch, %function
+vInitialContextSwitch:
+    
+    /* Load next task's stack pointer */
+    ldr sp, [r0, #0]                 /* Load SP from pxTopOfStack */
+    
+    /* Restore next task context */
+    ldr lr, [r0, #12]                         /* Restore return address */
+    
+    bx lr                            /* Return to next task */
+
+/**
+ * @brief Save current task context and restore next task context
  * @param R0: Pointer to current task's TCB
  * @param R1: Pointer to next task's TCB
  */

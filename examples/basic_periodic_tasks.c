@@ -114,7 +114,7 @@ void vIdleTask(void *pvParameters)
         vLedToggle(3);
         
         /* Simulate idle work */
-        for (volatile int i = 0; i < 100; i++);
+        //for (volatile int i = 0; i < 100; i++);
         
         /* Yield to other tasks */
         vTaskYield();
