@@ -26,6 +26,10 @@ extern "C" {
 #define SYSTICK_FREQ_HZ          1000    /* 1ms tick */
 #define SYSTICK_PRIORITY         0       /* Highest priority */
 
+/* Stack Canary*/
+#define ENABLE_STACK_CANARY      true
+#define STACK_CANARY             0x00ff0a00
+
 /* Task states */
 typedef enum {
     TASK_STATE_READY = 0,

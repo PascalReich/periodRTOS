@@ -16,6 +16,12 @@ static uint32_t ulTaskCount = 0;
 static SchedulerState_t eSchedulerState = SCHEDULER_NOT_STARTED;
 SystemMonitor_t xSystemMonitor = {0};
 
+/* Each task gets a fixed stack size allocated at compile time */
+//uint32_t ulStackMemory[MAX_TASKS][DEFAULT_STACK_SIZE / sizeof(uint32_t)];
+uint32_t ulStackMemory[MAX_TASKS * DEFAULT_STACK_SIZE / sizeof(uint32_t)];
+uint32_t ulStackAllocated[MAX_TASKS] = {0};
+uint32_t ulGlobalStackPtr = 0;
+
 /* External function prototypes */
 extern void vSchedulerInit(void);
 extern TaskHandle_t vSchedulerGetNextTask(void);
@@ -312,22 +318,34 @@ static void vInitializeTaskStack(void* sp) {
  */
 static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
 {
-    /* For embedded systems, we'll use static stack allocation */
-    /* Each task gets a fixed stack size allocated at compile time */
-    static uint32_t ulStackMemory[MAX_TASKS][DEFAULT_STACK_SIZE / sizeof(uint32_t)];
-    static uint32_t ulStackAllocated[MAX_TASKS] = {0};
     
     /* Find an available stack slot */
+    /*
     for (uint32_t i = 0; i < MAX_TASKS; i++) {
         if (ulStackAllocated[i] == 0) {
             ulStackAllocated[i] = 1;
-            pxTCB->pxStack = ulStackMemory[i];
-            pxTCB->pxTopOfStack = &ulStackMemory[i][pxTCB->ulStackSize - 1];
-            pxTCB->pxTopOfStack += 28; // compensate for 8 registers and stack pointer
+            pxTCB->pxStack = ulStackMemory[i]; // bottom limit
+            pxTCB->pxTopOfStack = ulStackMemory + pxTCB->ulStackSize; //&ulStackMemory[i][pxTCB->ulStackSize - 1];
+            // current pointer
+            pxTCB->pxTopOfStack -= 28; // compensate for 8 registers and return pointer
             *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
             return;
         }
-    }
+    }*/
+
+    pxTCB->pxStack = &ulStackMemory[ulGlobalStackPtr];
+    unsigned int bytes = pxTCB->ulStackSize * sizeof(uint32_t);
+    pxTCB->pxTopOfStack = pxTCB->pxStack + bytes - 1;
+
+    pxTCB->pxTopOfStack -= 28; // compensate for 8 registers and return pointer
+    *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
+
+    ulGlobalStackPtr += bytes;
+    #if ENABLE_STACK_CANARY
+    ulStackMemory[ulGlobalStackPtr++] = STACK_CANARY;
+    #endif
+
+
     
     /* If we get here, no stack available */
     pxTCB->pxStack = NULL;
