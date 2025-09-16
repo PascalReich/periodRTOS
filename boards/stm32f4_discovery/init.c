@@ -14,23 +14,23 @@
  */
  
 
-void ResetHandler(void);
+void Reset_Handler(void);
 void DefaultHandler(void);
 void TIM2_Handler (void) __attribute__ ((weak));
 
 // Symbols are declared in the linker script
-extern unsigned char  INIT_DATA_VALUES;
-extern unsigned char  INIT_DATA_START;
-extern unsigned char  INIT_DATA_END;
-extern unsigned char  BSS_START;
-extern unsigned char  BSS_END;
+extern unsigned char  _sidata;
+extern unsigned char  _sdata;
+extern unsigned char  _edata;
+extern unsigned char  __bss_start__;
+extern unsigned char  __bss_end__;
 
 // Vectors is placed at the beginning of flash by the linker
 // Using the __attribute((section(".vectors"))) we can instruct
 // the linker what section to place this array into.
 const void * Vectors[] __attribute__((section(".isr_vector"))) ={
 	(void *)0x2000a000, 	/* Top of stack */ 
-	ResetHandler,   	/* Reset Handler */
+	Reset_Handler,   	/* Reset Handler */
     DefaultHandler,		/* NMI */
 	DefaultHandler,		/* Hard Fault */
 	0,	                /* Reserved */
@@ -91,22 +91,22 @@ const void * Vectors[] __attribute__((section(".isr_vector"))) ={
  * 3. Zero the .bss section
  * 4. Call main()
  */
-void ResetHandler()
+void Reset_Handler()
 {
 	// do global/static data initialization
 	unsigned char *src;
 	unsigned char *dest;
 	unsigned len;
-	src= &INIT_DATA_VALUES;
-	dest= &INIT_DATA_START;
-	len= &INIT_DATA_END-&INIT_DATA_START;
+	src= &_sidata;
+	dest= &_sdata;
+	len= &_edata-&_sdata;
 	//TODO: Copy to sram
 	//memcpy(dest, src, len);
 	while (len--) *(dest++) = *(src++);
 	
 	// zero out the uninitialized global/static variable locations
-	dest = &BSS_START;
-	len = &BSS_END - &BSS_START;
+	dest = &__bss_start__;
+	len = &__bss_end__ - &__bss_start__;
 	//TODO: Zero bss section
 	//memset(dest, 0, len);
 	while (len--) *(dest++) = 0;
