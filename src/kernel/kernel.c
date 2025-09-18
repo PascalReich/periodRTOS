@@ -163,6 +163,10 @@ void vStartContextSwitch() {
     TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
     TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
 
+    vSetCurrentTask(next);
+
+    xSystemMonitor.ulTotalContextSwitches++;
+
     //curr->eCurrentState = TASK_STATE_BLOCKED;
     //TODO move to ready? iff preempted?
 
@@ -346,10 +350,10 @@ static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
     pxTCB->pxStack = &ulStackMemory[ulGlobalStackPtr];
     unsigned int bytes = pxTCB->ulStackSize * sizeof(uint32_t);
     
-    if (ulGlobalStackPtr + bytes < MAX_TASKS * DEFAULT_STACK_SIZE / sizeof(uint32_t)) {
+    if (ulGlobalStackPtr + bytes < MAX_TASKS * DEFAULT_STACK_SIZE) {
         pxTCB->pxTopOfStack = pxTCB->pxStack + bytes - 1;
 
-        pxTCB->pxTopOfStack -= 28; // compensate for 8 registers and return pointer
+        pxTCB->pxTopOfStack -= 9; // compensate for 8 registers and return pointer
         *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
 
         ulGlobalStackPtr += bytes;
