@@ -26,7 +26,7 @@ extern void vSetCurrentTask(TaskHandle_t xTask);
 static void vUpdateTaskPriorities(void);
 static TaskHandle_t pxGetHighestPriorityReadyTask(void);
 static void vAddTaskToReadyList(TaskHandle_t xTask);
-static void vRemoveTaskFromReadyList(TaskHandle_t xTask);
+//static void vRemoveTaskFromReadyList(TaskHandle_t xTask);
 static bool bIsTaskReady(TaskHandle_t xTask);
 static void vCheckDeadlines(void);
 static void vUpdateTaskTiming(TaskHandle_t xTask);
@@ -161,7 +161,7 @@ static void vAddTaskToReadyList(TaskHandle_t xTask)
 /**
  * @brief Remove task from ready list
  */
-static void vRemoveTaskFromReadyList(TaskHandle_t xTask)
+void vRemoveTaskFromReadyList(TaskHandle_t xTask)
 {
     TaskControlBlock_t *pxTCB;
     

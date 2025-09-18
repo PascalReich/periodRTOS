@@ -106,6 +106,7 @@ void vTaskStartScheduler(void);
 void vTaskYield(void);
 void vTaskSuspend(TaskHandle_t xTask);
 void vTaskResume(TaskHandle_t xTask);
+void vRemoveTaskFromReadyList(TaskHandle_t xTask);
 
 /* Monitoring functions */
 uint32_t ulGetContextSwitchCount(void);

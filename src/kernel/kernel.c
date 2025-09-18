@@ -25,6 +25,7 @@ uint32_t ulGlobalStackPtr = 0;
 /* External function prototypes */
 extern void vSchedulerInit(void);
 extern TaskHandle_t vSchedulerGetNextTask(void);
+extern void vRemoveTaskFromReadyList(TaskHandle_t xTask);
 extern void vTriggerContextSwitch(void);
 
 /* Internal function prototypes */
@@ -153,18 +154,24 @@ void vTaskStartScheduler(void)
     vInitialContextSwitch();
 }
 
+/**
+ * Assumes curr has updated state. 
+ */
 void vStartContextSwitch() {
 
     /*Get task*/
     TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
     TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
 
+    //curr->eCurrentState = TASK_STATE_BLOCKED;
+    //TODO move to ready? iff preempted?
+
     asm volatile (
         "mov r0, %0;"        // Move the current task of the operand into r0
         "mov r1, %1;"        // Move the next of the operand into r1
         :                   // No output operands
         : "r" (curr), "r" (next)        // Input operands
-        : "r0"              // Clobbered register: r1 is modified by the assembly instruction
+        : "r0", "r1"              // Clobbered register: r1 is modified by the assembly instruction
     );
 
     vContextSwitch();
@@ -177,6 +184,9 @@ void vStartContextSwitch() {
 void vTaskYield(void)
 {
     if (eSchedulerState == SCHEDULER_RUNNING) {
+        TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
+        curr->eCurrentState = TASK_STATE_BLOCKED;
+        vRemoveTaskFromReadyList(curr);
         vStartContextSwitch();
     }
 }
@@ -335,16 +345,19 @@ static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
 
     pxTCB->pxStack = &ulStackMemory[ulGlobalStackPtr];
     unsigned int bytes = pxTCB->ulStackSize * sizeof(uint32_t);
-    pxTCB->pxTopOfStack = pxTCB->pxStack + bytes - 1;
+    
+    if (ulGlobalStackPtr + bytes < MAX_TASKS * DEFAULT_STACK_SIZE / sizeof(uint32_t)) {
+        pxTCB->pxTopOfStack = pxTCB->pxStack + bytes - 1;
 
-    pxTCB->pxTopOfStack -= 28; // compensate for 8 registers and return pointer
-    *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
+        pxTCB->pxTopOfStack -= 28; // compensate for 8 registers and return pointer
+        *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
 
-    ulGlobalStackPtr += bytes;
-    #if ENABLE_STACK_CANARY
-    ulStackMemory[ulGlobalStackPtr++] = STACK_CANARY;
-    #endif
-
+        ulGlobalStackPtr += bytes;
+        #if ENABLE_STACK_CANARY
+        ulStackMemory[ulGlobalStackPtr++] = STACK_CANARY;
+        #endif
+        return;
+    }
 
     
     /* If we get here, no stack available */

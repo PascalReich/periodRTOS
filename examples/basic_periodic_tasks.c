@@ -39,7 +39,7 @@ static void vTask1(void *pvParameters)
         vTaskYield();
         
         /* Wait for next period */
-        vTaskDelay(100);
+        //vTaskDelay(100);
     }
 }
 
@@ -63,7 +63,7 @@ static void vTask2(void *pvParameters)
         vTaskYield();
         
         /* Wait for next period */
-        vTaskDelay(500);
+        //vTaskDelay(500);
     }
 }
 
@@ -100,7 +100,7 @@ static void vTask3(void *pvParameters)
         vTaskYield();
         
         /* Wait for next period */
-        vTaskDelay(1000);
+        //vTaskDelay(1000);
     }
 }
 
@@ -114,7 +114,7 @@ void vIdleTask(void *pvParameters)
         vLedToggle(3);
         
         /* Simulate idle work */
-        //for (volatile int i = 0; i < 100; i++);
+        for (volatile int i = 0; i < 100; i++);
         
         /* Yield to other tasks */
         vTaskYield();
