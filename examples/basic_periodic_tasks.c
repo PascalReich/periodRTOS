@@ -28,12 +28,14 @@ static void vTask1(void *pvParameters)
     
     while (1) {
         /* Task 1 work - toggle LED 0 */
-        vLedToggle(0);
+        vLedOn(0);
         
         /* Simulate some work */
         for (volatile int i = 0; i < 1000; i++);
         
         ulTask1Counter++;
+
+        vLedOff(0);
         
         /* Yield to other tasks */
         vTaskYield();
@@ -52,12 +54,14 @@ static void vTask2(void *pvParameters)
     
     while (1) {
         /* Task 2 work - toggle LED 1 */
-        vLedToggle(1);
+        vLedOn(1);
         
         /* Simulate some work */
         for (volatile int i = 0; i < 2000; i++);
         
         ulTask2Counter++;
+
+        vLedOff(1);
         
         /* Yield to other tasks */
         vTaskYield();
@@ -77,7 +81,7 @@ static void vTask3(void *pvParameters)
     
     while (1) {
         /* Task 3 work - toggle LED 2 */
-        vLedToggle(2);
+        vLedOn(2);
         
         /* Simulate some work */
         for (volatile int i = 0; i < 3000; i++);
@@ -95,6 +99,8 @@ static void vTask3(void *pvParameters)
             //vGetTaskInfo(xTask3Handle, pcBuffer, sizeof(pcBuffer));
             /* In a real system, this would be sent via UART */
         }
+
+        vLedOff(2);
         
         /* Yield to other tasks */
         vTaskYield();
@@ -111,10 +117,12 @@ void vIdleTask(void *pvParameters)
 {
     while (1) {
         /* Idle task work - toggle LED 3 */
-        vLedToggle(3);
+        vLedOn(3);
         
         /* Simulate idle work */
         for (volatile int i = 0; i < 100; i++);
+
+        vLedOff(3);
         
         /* Yield to other tasks */
         vTaskYield();

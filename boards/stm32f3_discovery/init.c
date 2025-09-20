@@ -19,6 +19,7 @@ void DefaultHandler(void);
 void TIM2_Handler (void) __attribute__ ((weak));
 void SysTick_Handler (void) __attribute__ ((weak));
 void NMI_Handler (void) __attribute__ ((weak));
+void PendSV_Handler (void) __attribute__ ((weak));
 void HardFaultHandler(void);
 
 // Symbols are declared in the linker script
@@ -46,7 +47,7 @@ const void * Vectors[] __attribute__((section(".isr_vector"))) ={
 	DefaultHandler,   	/* SVC */
 	0,                   	/* Reserved */
 	0,                   	/* Reserved */
-	DefaultHandler,   	/* PendSV */
+	PendSV_Handler,   	/* PendSV */
 	SysTick_Handler,   	/* SysTick */		
 	/* External interrupt handlers follow */
 	DefaultHandler, 	/* WWDG */
@@ -130,6 +131,10 @@ void DefaultHandler()
 }
 
 void NMI_Handler() {
+	while(1);
+}
+
+void PendSV_Handler() {
 	while(1);
 }
 
