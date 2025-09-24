@@ -61,7 +61,7 @@ const void * Vectors[] __attribute__((section(".isr_vector"))) ={
 	DefaultHandler,		/* ADC_COMP */
 	DefaultHandler,  	/* TIM1_BRK_UP_TRG_COM */
 	DefaultHandler, 	/* TIM1_CC */
-	TIM2_Handler, 	    /* TIM2 */ // REPLACE WITH HANDLER TODO
+	TIM2_Handler, 	    /* TIM2 */
 	DefaultHandler, 	/* TIM3 */
 	DefaultHandler, 	/* TIM6_DAC */
 	DefaultHandler, 	/* RESERVED */
@@ -100,18 +100,18 @@ void Reset_Handler()
 	src= &_sidata;
 	dest= &_sdata;
 	len= &_edata-&_sdata;
-	//TODO: Copy to sram
+	//: Copy to sram
 	//memcpy(dest, src, len);
 	while (len--) *(dest++) = *(src++);
 	
 	// zero out the uninitialized global/static variable locations
 	dest = &__bss_start__;
 	len = &__bss_end__ - &__bss_start__;
-	//TODO: Zero bss section
+	//: Zero bss section
 	//memset(dest, 0, len);
 	while (len--) *(dest++) = 0;
 
-	//TODO: Jump to application
+	//: Jump to application
 	asm ("bl main");
 }
 
