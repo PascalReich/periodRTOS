@@ -4,8 +4,8 @@
  */
 
 #include "periodRTOS.h"
+#include "scheduler_interface.h"
 #include <string.h>
-#include <stdio.h>
 
 /* Global variables */
 TaskControlBlock_t xTaskList[MAX_TASKS];
@@ -27,9 +27,6 @@ uint32_t * ulCanaryAddresses[MAX_TASKS];
 #endif
 
 /* External function prototypes */
-extern void vSchedulerInit(void);
-extern TaskHandle_t vSchedulerGetNextTask(void);
-extern void vRemoveTaskFromReadyList(TaskHandle_t xTask);
 extern void vTriggerContextSwitch(void);
 
 extern uint32_t ulSystemTick;
@@ -67,6 +64,18 @@ void vKernelInit(void)
     xCurrentTask = NULL;
     xIdleTask = NULL;
     eSchedulerState = SCHEDULER_NOT_STARTED;
+    
+    /* Initialize default scheduler */
+#ifdef SCHEDULER_RM
+    extern const scheduler_interface_t* pxGetRMSchedulerInterface(void);
+    vSetSchedulerInterface(pxGetRMSchedulerInterface());
+#elif defined(SCHEDULER_EDF)
+    extern const scheduler_interface_t* pxGetEDFSchedulerInterface(void);
+    vSetSchedulerInterface(pxGetEDFSchedulerInterface());
+#elif defined(SCHEDULER_RR)
+    extern const scheduler_interface_t* pxGetRRSchedulerInterface(void);
+    vSetSchedulerInterface(pxGetRRSchedulerInterface());
+#endif
 }
 
 /**
