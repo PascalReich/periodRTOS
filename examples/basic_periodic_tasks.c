@@ -38,10 +38,11 @@ static void vTask1(void *pvParameters)
         vLedOff(0);
         
         /* Yield to other tasks */
-        vTaskYield();
+        //vTaskYield();
         
         /* Wait for next period */
         //vTaskDelay(100);
+        break;
     }
 }
 
@@ -115,6 +116,17 @@ static void vTask3(void *pvParameters)
  */
 void vIdleTask(void *pvParameters)
 {
+    vTaskDelay(1);
+
+    while (1)
+    {
+        /* code */
+        vLedOn(3);
+        vTaskYield();
+        vLedOff(3);
+    }
+    
+    
     while (1) {
         /* Idle task work - toggle LED 3 */
         vLedOn(3);

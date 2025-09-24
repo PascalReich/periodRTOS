@@ -13,6 +13,29 @@
 
 /**
  * @brief Save current task context and restore next task context
+ * @param R0: Pointer to TCB
+ * @param LR: Pointer to function
+ *
+    .global vTaskWrapper
+    .type vTaskWrapper, %function
+vTaskWrapper:
+
+    
+    /* Call task *
+    blx lr
+
+    /* Cyclic executive tasks will never return, and thats ok. */
+
+    /* But if it did, we mark the task as fresh (needs to be called from entry)
+            and yield the task. *
+    mov r0, #1
+    str r0, [r0, #16]
+
+    b vTaskYield*/
+    
+
+/**
+ * @brief Save current task context and restore next task context
  * @param R0: Pointer to next task's TCB
  */
     .global vInitialContextSwitch
@@ -20,12 +43,15 @@
 vInitialContextSwitch:
     
     /* Load next task's stack pointer */
-    ldr sp, [r0, #0]                 /* Load SP from pxTopOfStack */
+    ldr sp, [r0, #8]                 /* Load SP from pxStackMax */
     
-    /* Restore next task context */
-    ldr lr, [r0, #12]                         /* Restore return address */
+    /* Restore next task context */ // TODO consider necessary?
+    //ldr lr, [r0, #16]                         /* Restore return address */
+
+    mov r7, #0
     
-    bx lr                            /* Return to next task */
+    //bx lr                            /* Return to next task */
+    b TaskWrapper
 
 /**
  * @brief Save current task context and restore next task context
@@ -35,12 +61,25 @@ vInitialContextSwitch:
     .global vContextSwitch
     .type vContextSwitch, %function
 vContextSwitch:
+    // TODO we are going to overflow this way.
+
+    ldr r3, [r0, #20] //load status word of old task
+    cmp r3, #1        //compare to 1 (dirty)
+    beq skipRegisterSave // if it is, we will be resetting the stack anyway, so we can skip the register stack save
+
     /* Save current task context */
     push {r4-r11}                    /* Save callee-saved registers */
     push {lr}                        /* Save return address */
     
+skipRegisterSave:
     /* Save current stack pointer to current task's TCB */
     str sp, [r0, #0]                 /* Store SP to pxTopOfStack */
+
+
+    ldr r4, [r1, #20] //load status word
+    cmp r4, #1        //compare to 1 (dirty)
+    mov r0, r1
+    beq vInitialContextSwitch // if so, jump to initial setup for new task (or instance)
     
     /* Load next task's stack pointer */
     ldr sp, [r1, #0]                 /* Load SP from pxTopOfStack */

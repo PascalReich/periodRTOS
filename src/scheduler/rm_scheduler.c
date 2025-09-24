@@ -12,7 +12,7 @@ extern TaskHandle_t xIdleTask;
 extern SystemMonitor_t xSystemMonitor;
 
 /* Scheduler state */
-static TaskHandle_t pxReadyList[MAX_PRIORITY_LEVELS];
+TaskHandle_t pxReadyList[MAX_PRIORITY_LEVELS];
 static TaskHandle_t pxCurrentTaskTCB = NULL;
 uint32_t ulSystemTick = 0;
 static bool bSchedulerInitialized = false;
@@ -30,6 +30,12 @@ static void vAddTaskToReadyList(TaskHandle_t xTask);
 static bool bIsTaskReady(TaskHandle_t xTask);
 static void vCheckDeadlines(void);
 static void vUpdateTaskTiming(TaskHandle_t xTask);
+
+
+#if ENABLE_STACK_CANARY
+extern uint32_t * ulCanaryAddresses[MAX_TASKS];
+#endif
+
 
 /**
  * @brief Initialize the Rate Monotonic scheduler
@@ -75,12 +81,12 @@ TaskHandle_t vSchedulerGetNextTask(void)
     /* Update current task */
     pxCurrentTaskTCB = xNextTask;
     
-    /* Update task state */
+    /* Update task state 
     if (xNextTask != xIdleTask) {
         TaskControlBlock_t *pxTCB = (TaskControlBlock_t *)xNextTask;
         pxTCB->eCurrentState = TASK_STATE_RUNNING;
         pxTCB->ulLastStartTime = ulSystemTick;
-    }
+    } */  // TODO lets let this be handled elsewhere
     
     return xNextTask;
 }
@@ -244,6 +250,16 @@ static void vUpdateTaskTiming(TaskHandle_t xTask)
  */
 void vSystemTickHandler(void)
 {
+
+    #if ENABLE_STACK_CANARY
+    for (uint32_t i = 0; i < MAX_TASKS; i++) {
+        uint32_t* value = ulCanaryAddresses[i];
+        if (value && *value != STACK_CANARY) {
+            while(1) {;}
+        }
+    }
+    #endif
+
     TaskControlBlock_t *pxTCB;
     
     /* Increment system tick */

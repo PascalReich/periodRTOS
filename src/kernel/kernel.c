@@ -22,11 +22,18 @@ uint32_t ulStackMemory[MAX_TASKS * DEFAULT_STACK_SIZE / sizeof(uint32_t)];
 uint32_t ulStackAllocated[MAX_TASKS] = {0};
 uint32_t ulGlobalStackPtr = 0;
 
+#if ENABLE_STACK_CANARY
+uint32_t * ulCanaryAddresses[MAX_TASKS];
+#endif
+
 /* External function prototypes */
 extern void vSchedulerInit(void);
 extern TaskHandle_t vSchedulerGetNextTask(void);
 extern void vRemoveTaskFromReadyList(TaskHandle_t xTask);
 extern void vTriggerContextSwitch(void);
+
+extern uint32_t ulSystemTick;
+
 
 /* Internal function prototypes */
 static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB, 
@@ -163,6 +170,8 @@ void vStartContextSwitch() {
     TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
     TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
 
+    next->eCurrentState = TASK_STATE_RUNNING;
+    next->ulLastStartTime = ulSystemTick;
     vSetCurrentTask(next);
 
     xSystemMonitor.ulTotalContextSwitches++;
@@ -183,16 +192,42 @@ void vStartContextSwitch() {
 }
 
 /**
- * @brief Yield current task
+ * @brief Yield current task TODO this may be whats leading to state issues
  */
 void vTaskYield(void)
 {
     if (eSchedulerState == SCHEDULER_RUNNING) {
         TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
-        curr->eCurrentState = TASK_STATE_BLOCKED;
-        vRemoveTaskFromReadyList(curr);
-        vStartContextSwitch();
+
+        if (curr->ulTaskID || vSchedulerGetNextTask() != curr) {
+            curr->eCurrentState = TASK_STATE_BLOCKED;
+            vRemoveTaskFromReadyList(curr);
+            vStartContextSwitch();
+        }
     }
+}
+
+void TaskWrapper(void) {
+    TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
+
+    curr->taskFlags = 0;
+
+    void (* taskfunc)(void) = (void *) curr->pxTaskCode;
+
+
+    taskfunc();
+
+    // probably wont return. but if it does, its a instance based task, so we reset the flags to spawn new.
+
+    curr->taskFlags = 1;
+    //curr->pxTopOfStack = curr->pxStackBase + (curr->ulStackSize * 4) - 10;
+    return vTaskYield();
+
+}
+
+
+__attribute__((naked)) void task_epilogue() {
+
 }
 
 /**
@@ -293,6 +328,7 @@ static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB,
     
     /* Set task properties */
     pxTCB->pxTaskCode = pxTaskCode;
+    pxTCB->taskFlags = 1;
     pxTCB->pvParameters = pvParameters;
     pxTCB->ulPeriod = ulPeriod;
     pxTCB->ulDeadline = ulDeadline;
@@ -323,8 +359,9 @@ static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB,
     pxTCB->bDeadlineMissed = false;
 }
 
-static void vInitializeTaskStack(void* sp) {
-
+static void vInitializeTaskStack(void) {
+    TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
+    curr->pxTopOfStack = curr->pxStackBase + (curr->ulStackSize * 4) - 10;
 }
 
 /**
@@ -338,7 +375,7 @@ static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
     for (uint32_t i = 0; i < MAX_TASKS; i++) {
         if (ulStackAllocated[i] == 0) {
             ulStackAllocated[i] = 1;
-            pxTCB->pxStack = ulStackMemory[i]; // bottom limit
+            pxTCB->pxStackBase = ulStackMemory[i]; // bottom limit
             pxTCB->pxTopOfStack = ulStackMemory + pxTCB->ulStackSize; //&ulStackMemory[i][pxTCB->ulStackSize - 1];
             // current pointer
             pxTCB->pxTopOfStack -= 28; // compensate for 8 registers and return pointer
@@ -347,25 +384,31 @@ static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
         }
     }*/
 
-    pxTCB->pxStack = &ulStackMemory[ulGlobalStackPtr];
+    #if ENABLE_STACK_CANARY
+    ulStackMemory[ulGlobalStackPtr] = STACK_CANARY;
+    ulCanaryAddresses[pxTCB->ulTaskID] = &ulStackMemory[ulGlobalStackPtr];
+    ulGlobalStackPtr++;
+    #endif
+
+    pxTCB->pxStackBase = &ulStackMemory[ulGlobalStackPtr];
     unsigned int bytes = pxTCB->ulStackSize * sizeof(uint32_t);
     
     if (ulGlobalStackPtr + bytes < MAX_TASKS * DEFAULT_STACK_SIZE) {
-        pxTCB->pxTopOfStack = pxTCB->pxStack + bytes - 1;
+        pxTCB->pxTopOfStack = pxTCB->pxStackBase + bytes - 1;
 
         pxTCB->pxTopOfStack -= 9; // compensate for 8 registers and return pointer
+        pxTCB->pxStackMax = pxTCB->pxTopOfStack;
         *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
 
         ulGlobalStackPtr += bytes;
-        #if ENABLE_STACK_CANARY
-        ulStackMemory[ulGlobalStackPtr++] = STACK_CANARY;
-        #endif
+
+        
         return;
     }
 
     
     /* If we get here, no stack available */
-    pxTCB->pxStack = NULL;
+    pxTCB->pxStackBase = NULL;
     pxTCB->pxTopOfStack = NULL;
 }
 
@@ -377,9 +420,14 @@ static TaskHandle_t pxFindFreeTaskSlot(void)
     uint32_t i;
     
     for (i = 0; i < MAX_TASKS; i++) {
-        if (xTaskList[i].ulTaskID == 0) {
-            return (TaskHandle_t)&xTaskList[i];
-        }
+        
+        //if (xTaskList[i].ulTaskID == 0) {
+        //    return (TaskHandle_t)&xTaskList[i];
+        //}
+        
+
+        return &xTaskList[ulNextTaskID];
+
     }
     
     return NULL;

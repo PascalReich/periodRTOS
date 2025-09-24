@@ -49,11 +49,13 @@ typedef void (*TaskFunction_t)(void *parameters);
 typedef struct TaskControlBlock {
     /* Stack management */
     uint32_t *pxTopOfStack;          /* Current stack pointer */
-    uint32_t *pxStack;               /* Base of stack */
+    uint32_t *pxStackBase;               /* Base of stack */
+    uint32_t *pxStackMax;               /* Max Addr (starting point) of stack */
     uint32_t ulStackSize;            /* Stack size in words */
     
     /* Task properties */
     TaskFunction_t pxTaskCode;       /* Task function pointer */
+    uint32_t taskFlags;              /* 1 is fresh, 0 is dirty*/
     void *pvParameters;              /* Task parameters */
     uint32_t ulPeriod;               /* Task period in ms */
     uint32_t ulDeadline;             /* Task deadline in ms */
