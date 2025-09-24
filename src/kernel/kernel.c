@@ -170,8 +170,13 @@ void vStartContextSwitch() {
     TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
     TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
 
+    curr->ulExecutionTime += ulSystemTick - curr->ulLastStartTime;
+    //if (curr->eCurrentState == TASK_STATE_RUNNING) curr->eCurrentState = TASK_STATE_READY; // move to ready iff. preempted.
+
     next->eCurrentState = TASK_STATE_RUNNING;
     next->ulLastStartTime = ulSystemTick;
+    next->ulContextSwitchCount++;
+
     vSetCurrentTask(next);
 
     xSystemMonitor.ulTotalContextSwitches++;

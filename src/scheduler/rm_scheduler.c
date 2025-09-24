@@ -232,11 +232,11 @@ static void vUpdateTaskTiming(TaskHandle_t xTask)
     
     pxTCB = (TaskControlBlock_t *)xTask;
     
-    /* Update execution time */
+    /* Update execution time 
     if (pxTCB->ulLastStartTime > 0) {
         uint32_t ulExecutionTime = ulSystemTick - pxTCB->ulLastStartTime;
         pxTCB->ulExecutionTime += ulExecutionTime;
-    }
+    } */
     
     /* Update release and deadline times for periodic tasks */
     if (pxTCB->ulPeriod > 0) {
@@ -297,7 +297,10 @@ void vSystemTickHandler(void)
         
         if (pxNextTCB->ulPriority < pxCurrentTCB->ulPriority) {
             /* Higher priority task is ready, trigger context switch */
-            vTriggerContextSwitch();
+            pxCurrentTCB->eCurrentState = TASK_STATE_READY;
+            
+            vStartContextSwitch();
+            //vTriggerContextSwitch();
         }
     }
 }

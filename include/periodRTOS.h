@@ -48,28 +48,28 @@ typedef void (*TaskFunction_t)(void *parameters);
 /* Task control block structure */
 typedef struct TaskControlBlock {
     /* Stack management */
-    uint32_t *pxTopOfStack;          /* Current stack pointer */
-    uint32_t *pxStackBase;               /* Base of stack */
-    uint32_t *pxStackMax;               /* Max Addr (starting point) of stack */
-    uint32_t ulStackSize;            /* Stack size in words */
+    uint32_t *pxTopOfStack;          /* Current stack pointer +0 */
+    uint32_t *pxStackBase;               /* Base of stack +4 */
+    uint32_t *pxStackMax;               /* Max Addr (starting point) of stack +8 */
+    uint32_t ulStackSize;            /* Stack size in words +12 */
     
     /* Task properties */
-    TaskFunction_t pxTaskCode;       /* Task function pointer */
-    uint32_t taskFlags;              /* 1 is fresh, 0 is dirty*/
-    void *pvParameters;              /* Task parameters */
-    uint32_t ulPeriod;               /* Task period in ms */
-    uint32_t ulDeadline;             /* Task deadline in ms */
-    uint32_t ulPriority;             /* Task priority (0 = highest) */
-    TaskState_t eCurrentState;       /* Current task state */
+    TaskFunction_t pxTaskCode;       /* Task function pointer +16 */
+    uint32_t taskFlags;              /* 1 is fresh, 0 is dirty  +20*/
+    void *pvParameters;              /* Task parameters +24 */
+    uint32_t ulPeriod;               /* Task period in ms +28 */
+    uint32_t ulDeadline;             /* Task deadline in ms +32 */
+    uint32_t ulPriority;             /* Task priority (0 = highest) + 26*/
+    TaskState_t eCurrentState;       /* Current task state +40 */
     
     /* Timing information */
-    uint32_t ulReleaseTime;          /* Next release time */
-    uint32_t ulDeadlineTime;         /* Next deadline time */
-    uint32_t ulExecutionTime;        /* Total execution time */
-    uint32_t ulLastStartTime;        /* Last start execution time */
+    uint32_t ulReleaseTime;          /* Next release time +44*/
+    uint32_t ulDeadlineTime;         /* Next deadline time +48 */
+    uint32_t ulExecutionTime;        /* Total execution time +52 */
+    uint32_t ulLastStartTime;        /* Last start execution time +56*/
     
     /* Monitoring data */
-    uint32_t ulContextSwitchCount;   /* Number of context switches */
+    uint32_t ulContextSwitchCount;   /* Number of context switches +60 */
     uint32_t ulDeadlineMissCount;    /* Number of deadline misses */
     bool bDeadlineMissed;            /* Current deadline miss flag */
     
