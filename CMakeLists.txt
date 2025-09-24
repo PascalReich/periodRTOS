@@ -40,13 +40,16 @@ set(KERNEL_SOURCES
     src/timer/systick.c
     src/monitor/monitor.c
     src/hal/syscalls.c
+    src/port/port_manager.c
+    src/bsp/bsp_manager.c
 )
 
 # Add scheduler sources from configuration
 list(APPEND KERNEL_SOURCES ${SCHEDULER_SOURCES})
 
-# Add board-specific HAL sources
-list(APPEND KERNEL_SOURCES ${BOARD_HAL_SOURCES})
+# Add board-specific port and BSP sources
+list(APPEND KERNEL_SOURCES ${BOARD_PORT_SOURCES})
+list(APPEND KERNEL_SOURCES ${BOARD_BSP_SOURCES})
 
 # Create kernel library
 add_library(periodRTOS_kernel STATIC ${KERNEL_SOURCES})

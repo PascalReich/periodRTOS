@@ -133,13 +133,33 @@ TaskHandle_t vSchedulerGetNextTask(void);
 void vTriggerContextSwitch(void);
 bool bIsValidTaskHandle(TaskHandle_t xTask);
 
+/* Scheduler interface functions */
+void vSchedulerAddTask(TaskHandle_t xTask);
+void vSchedulerRemoveTask(TaskHandle_t xTask);
+void vSchedulerUpdatePriorities(void);
+void vSchedulerTickHandler(void);
+
 /* Board-specific functions */
 void vBoardInit(void);
-void vConfigureSystemClock(void);
-void vInitGPIO(void);
-void vLedOn(uint32_t ulLed);
-void vLedOff(uint32_t ulLed);
-void vLedToggle(uint32_t ulLed);
+
+/* Port layer functions (RTOS-essential only) */
+void vPortInit(void);
+bool bPortTimerInit(uint32_t tick_freq_hz);
+uint32_t ulPortGetTickCount(void);
+void vPortContextSwitch(void);
+void vPortYield(void);
+uint32_t ulPortDisableInterrupts(void);
+void vPortEnableInterrupts(uint32_t state);
+uint32_t ulPortGetSystemClock(void);
+
+/* BSP functions (optional convenience functions) */
+void vBSPInit(void);
+void vBSPLedOn(uint32_t ulLed);
+void vBSPLedOff(uint32_t ulLed);
+void vBSPLedToggle(uint32_t ulLed);
+bool bBSPUARTInit(uint32_t baud_rate);
+void vBSPUARTPutc(char c);
+int iBSPUARTGetc(void);
 
 /* Timer functions */
 void vSystickInit(void);

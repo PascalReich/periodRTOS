@@ -5,13 +5,9 @@
 
 #include "periodRTOS.h"
 #include "scheduler_interface.h"
-
-/* Systick configuration */
-#define SYSTICK_RELOAD_VALUE    (SystemCoreClock / SYSTICK_FREQ_HZ - 1)
-#define SYSTICK_PRIORITY        0
+#include "port_interface.h"
 
 /* External variables */
-extern uint32_t SystemCoreClock;
 extern uint32_t ulSystemTick;
 
 /**
@@ -19,15 +15,8 @@ extern uint32_t ulSystemTick;
  */
 void vSystickInit(void)
 {
-    /* Configure Systick */
-    SysTick->LOAD = SYSTICK_RELOAD_VALUE;
-    SysTick->VAL = 0;
-    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | 
-                   SysTick_CTRL_TICKINT_Msk | 
-                   SysTick_CTRL_ENABLE_Msk;
-    
-    /* Set Systick priority (highest priority) */
-    NVIC_SetPriority(SysTick_IRQn, SYSTICK_PRIORITY);
+    /* Use port layer to initialize timer */
+    bPortTimerInit(SYSTICK_FREQ_HZ);
 }
 
 /**
@@ -44,7 +33,7 @@ void SysTick_Handler(void)
  */
 uint32_t ulGetSystemTick(void)
 {
-    return ulSystemTick;
+    return ulPortGetTickCount();
 }
 
 /**

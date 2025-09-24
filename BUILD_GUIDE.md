@@ -2,7 +2,10 @@
 
 ## Modular Build System
 
-The periodRTOS now supports a modular build system that allows easy configuration of different boards and schedulers.
+The periodRTOS now supports a modular build system that follows industry standards:
+- **Minimal port layer**: Only RTOS-essential hardware functions
+- **Optional BSP**: Convenience functions for common peripherals
+- **Vendor HAL integration**: Use STM32 HAL, Nordic SDK, ESP-IDF, etc.
 
 ## Building with Different Boards
 
@@ -93,10 +96,50 @@ make
 - `cmake/scheduler_config.cmake` - Scheduler-specific configuration
 - `CMakeLists.txt` - Main build configuration
 
-## Benefits
+## Architecture Benefits
 
-- **Easy board addition**: Just add a directory and implement the interface
+### **Industry Standard Approach**
+- **Minimal port layer**: Only RTOS-essential functions (like FreeRTOS)
+- **Vendor HAL integration**: Use existing STM32 HAL, Nordic SDK, etc.
+- **Optional BSP**: Convenience functions for common peripherals
+- **Clean separation**: RTOS core is hardware-agnostic
+
+### **Easy Integration**
+- **Leverage existing code**: Use vendor HALs and examples
+- **Familiar patterns**: Matches FreeRTOS, Zephyr approach
+- **Less maintenance**: Don't reinvent peripheral drivers
+- **Better compatibility**: Works with existing ecosystems
+
+### **Modular Design**
+- **Easy board addition**: Just implement port layer interface
 - **Scheduler flexibility**: Swap schedulers without code changes
 - **Automatic detection**: Build system finds available boards and schedulers
-- **Modular design**: Clean separation of concerns
 - **Future-proof**: Easy to extend with new hardware and algorithms
+
+## Usage Examples
+
+### **Using STM32 HAL (Recommended)**
+```c
+#include "periodRTOS.h"
+#include "stm32f3xx_hal.h"
+
+void vTask1(void *pvParameters) {
+    // Use STM32 HAL for peripherals
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+    
+    // Use periodRTOS for task management
+    vTaskDelay(500);
+}
+```
+
+### **Using periodRTOS BSP (Optional)**
+```c
+#include "periodRTOS.h"
+
+void vTask2(void *pvParameters) {
+    // Use periodRTOS BSP for convenience
+    vBSPLedOn(0);
+    vTaskDelay(200);
+    vBSPLedOff(0);
+}
+```
