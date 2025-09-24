@@ -141,7 +141,7 @@ The monitoring system provides:
 
 ### High Priority
 - [ ] **Synchronization/IPC**: Implement mutexes, semaphores, and message queues for inter-task communication
-- [ ] **Instance-based Task Model**: Transition from cyclic task model to task instances for better real-time guarantees
+- [x] **Instance-based Task Model**: Transition from cyclic task model to task instances for better real-time guarantees
 - [ ] **Remove Task Delay Functions**: Eliminate vTaskDelay and vTaskDelayUntil in favor of proper periodic task scheduling
 - [ ] **Deadline Miss Monitoring**: Enhanced monitoring and reporting of deadline violations
 - [ ] **Task Phasing**: Support for task phase offsets to improve schedulability
