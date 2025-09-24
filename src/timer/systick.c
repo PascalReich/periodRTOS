@@ -4,7 +4,7 @@
  */
 
 #include "periodRTOS.h"
-#include "scheduler_interface.h"
+#include "stm32f303xx.h"
 
 /* Systick configuration */
 #define SYSTICK_RELOAD_VALUE    (SystemCoreClock / SYSTICK_FREQ_HZ - 1)
@@ -35,8 +35,8 @@ void vSystickInit(void)
  */
 void SysTick_Handler(void)
 {
-    /* Call scheduler tick handler */
-    vSchedulerTickHandler();
+    /* Call system tick handler */
+    vSystemTickHandler();
 }
 
 /**
