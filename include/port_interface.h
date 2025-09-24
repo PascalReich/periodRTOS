@@ -17,6 +17,8 @@
 extern "C" {
 #endif
 
+#define NULL 0
+
 /**
  * @brief Port layer interface structure
  * 

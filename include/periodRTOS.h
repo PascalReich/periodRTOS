@@ -30,6 +30,8 @@ extern "C" {
 #define ENABLE_STACK_CANARY      true
 #define STACK_CANARY             0x00ff0a00
 
+#define NULL 0
+
 /* Task states */
 typedef enum {
     TASK_STATE_READY = 0,
