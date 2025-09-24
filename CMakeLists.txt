@@ -5,17 +5,24 @@ project(periodRTOS VERSION 1.0.0 LANGUAGES C ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Include configuration modules
+include(cmake/board_config.cmake)
+include(cmake/scheduler_config.cmake)
+
 # Check if we're cross-compiling
 if(CMAKE_CROSSCOMPILING)
-    message(STATUS "Cross-compiling for ARM Cortex-M4 (STM32F3)")
+    message(STATUS "Cross-compiling for ${TARGET_BOARD}")
 else()
     message(STATUS "Native compilation")
 endif()
 
-# Compiler flags for ARM Cortex-M4
-set(MCU_FLAGS "-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MCU_FLAGS}")
-set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${MCU_FLAGS}")
+# Set compiler flags from board configuration
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BOARD_MCU_FLAGS}")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${BOARD_MCU_FLAGS}")
+
+# Add board and scheduler defines
+add_definitions(${BOARD_DEFINES})
+add_definitions(${SCHEDULER_DEFINES})
 
 # Optimization and debug flags
 set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG")
@@ -26,32 +33,26 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
 # Include directories
 include_directories(include)
 
-# Source files
+# Core kernel sources (hardware-agnostic)
 set(KERNEL_SOURCES
     src/kernel/kernel.c
     src/kernel/context_switch.S
-    src/scheduler/rm_scheduler.c
-#    src/tasks/task_manager.c
     src/timer/systick.c
     src/monitor/monitor.c
-    src/hal/stm32_hal.c
     src/hal/syscalls.c
 )
 
-# Board-specific sources (STM32F3 Discovery)
-set(BOARD_SOURCES
-    boards/stm32f3_discovery/board_init.c
-    boards/stm32f3_discovery/init.c
-)
+# Add scheduler sources from configuration
+list(APPEND KERNEL_SOURCES ${SCHEDULER_SOURCES})
+
+# Add board-specific HAL sources
+list(APPEND KERNEL_SOURCES ${BOARD_HAL_SOURCES})
 
 # Create kernel library
 add_library(periodRTOS_kernel STATIC ${KERNEL_SOURCES})
 
 # Create board library
 add_library(periodRTOS_board STATIC ${BOARD_SOURCES})
-
-# Linker script (STM32F303)
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/boards/stm32f3_discovery/STM32F303x_FLASH.ld)
 
 # Example application
 add_executable(example_app
@@ -84,6 +85,6 @@ set_target_properties(example_app PROPERTIES
 )
 
 # Print build information
-message(STATUS "Building periodRTOS for ARM Cortex-M4 (STM32F3)")
-message(STATUS "Target: STM32F3 Discovery")
+message(STATUS "Building periodRTOS for ${TARGET_BOARD}")
+message(STATUS "Scheduler: ${TARGET_SCHEDULER}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
