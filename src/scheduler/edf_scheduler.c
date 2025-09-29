@@ -1,10 +1,11 @@
 /**
- * @file rm_scheduler.c
- * @brief Rate Monotonic scheduler implementation
+ * @file edf_sched.c
+ * @brief Earliest Deadline First (EDF) scheduler implementation
  */
 
 #include "periodRTOS.h"
 #include <string.h>
+#include <limits.h> // Required for UINT32_MAX
 
 /* External variables */
 extern TaskControlBlock_t xTaskList[MAX_TASKS];
@@ -12,7 +13,9 @@ extern TaskHandle_t xIdleTask;
 extern SystemMonitor_t xSystemMonitor;
 
 /* Scheduler state */
-TaskHandle_t pxReadyList[MAX_PRIORITY_LEVELS];
+// --- EDF CHANGE ---
+// The pxReadyList is removed as it's based on static priorities, which EDF does not use.
+// static TaskHandle_t pxReadyList[MAX_PRIORITY_LEVELS]; 
 static TaskHandle_t pxCurrentTaskTCB = NULL;
 uint32_t ulSystemTick = 0;
 static bool bSchedulerInitialized = false;
@@ -21,12 +24,16 @@ static bool bSchedulerInitialized = false;
 extern void vTriggerContextSwitch(void);
 extern TaskHandle_t pxGetCurrentTask(void);
 extern void vSetCurrentTask(TaskHandle_t xTask);
+extern void vStartContextSwitch(void);
+
 
 /* Internal function prototypes */
-static void vUpdateTaskPriorities(void);
-static TaskHandle_t pxGetHighestPriorityReadyTask(void);
-static void vAddTaskToReadyList(TaskHandle_t xTask);
-//static void vRemoveTaskFromReadyList(TaskHandle_t xTask);
+// --- EDF CHANGE ---
+// These functions are either removed or their purpose has changed.
+// static void vUpdateTaskPriorities(void); // RM-specific, removed.
+static TaskHandle_t pxGetEarliestDeadlineTask(void); // Replaces pxGetHighestPriorityReadyTask
+// static void vAddTaskToReadyList(TaskHandle_t xTask); // No-op now
+// static void vRemoveTaskFromReadyList(TaskHandle_t xTask); // No-op now
 static bool bIsTaskReady(TaskHandle_t xTask);
 static void vCheckDeadlines(void);
 static void vUpdateTaskTiming(TaskHandle_t xTask);
@@ -38,31 +45,20 @@ extern uint32_t * ulCanaryAddresses[MAX_TASKS];
 
 
 /**
- * @brief Initialize the Rate Monotonic scheduler
+ * @brief Initialize the EDF scheduler
  */
 void vSchedulerInit(void)
 {
-    /* Clear ready list */
-    memset(pxReadyList, 0, sizeof(pxReadyList));
-    
-    /* Update task priorities based on periods (Rate Monotonic) */
-    vUpdateTaskPriorities();
-    
-    /* Add all ready tasks to ready list */
-    for (uint32_t i = 0; i < MAX_TASKS; i++) {
-        TaskControlBlock_t *pxTCB = &xTaskList[i];
-        if (pxTCB->ulTaskID != 0 && pxTCB->eCurrentState == TASK_STATE_READY) {
-            vAddTaskToReadyList((TaskHandle_t)pxTCB);
-        }
-    }
-    
+    // --- EDF CHANGE ---
+    // The scheduler no longer calculates static priorities or populates a ready list at startup.
+    // It only needs to mark itself as initialized.
     bSchedulerInitialized = true;
 }
 
 /**
- * @brief Get the next task to run (Rate Monotonic scheduling)
+ * @brief Get the next task to run (EDF scheduling)
  */
-TaskHandle_t vSchedulerGetNextTask(void)
+TaskHandle_t vScheduleNextTask(void)
 {
     TaskHandle_t xNextTask;
     
@@ -70,8 +66,9 @@ TaskHandle_t vSchedulerGetNextTask(void)
         return NULL;
     }
     
-    /* Get highest priority ready task */
-    xNextTask = pxGetHighestPriorityReadyTask();
+    // --- EDF CHANGE ---
+    // Get the ready task with the earliest deadline.
+    xNextTask = pxGetEarliestDeadlineTask();
     
     /* If no ready task, return idle task */
     if (xNextTask == NULL) {
@@ -81,106 +78,54 @@ TaskHandle_t vSchedulerGetNextTask(void)
     /* Update current task */
     pxCurrentTaskTCB = xNextTask;
     
-    /* Update task state 
-    if (xNextTask != xIdleTask) {
-        TaskControlBlock_t *pxTCB = (TaskControlBlock_t *)xNextTask;
-        pxTCB->eCurrentState = TASK_STATE_RUNNING;
-        pxTCB->ulLastStartTime = ulSystemTick;
-    } */  // TODO lets let this be handled elsewhere
-    
     return xNextTask;
 }
 
 /**
- * @brief Update task priorities based on Rate Monotonic algorithm
- * Shorter period = higher priority (lower priority number)
+ * @brief Get the ready task with the earliest absolute deadline.
+ * This is the core logic of the EDF scheduler.
  */
-static void vUpdateTaskPriorities(void)
+static TaskHandle_t pxGetEarliestDeadlineTask(void)
 {
-    TaskControlBlock_t *pxTCB;
-    uint32_t ulPriority = 0;
-    
-    /* Sort tasks by period (ascending order) */
+    TaskHandle_t pxTaskWithEarliestDeadline = NULL;
+    uint32_t ulEarliestDeadline = UINT32_MAX;
+
+    // Iterate through the master task list to find the best candidate.
     for (uint32_t i = 0; i < MAX_TASKS; i++) {
-        for (uint32_t j = i + 1; j < MAX_TASKS; j++) {
-            TaskControlBlock_t *pxTCB1 = &xTaskList[i];
-            TaskControlBlock_t *pxTCB2 = &xTaskList[j];
-            
-            if (pxTCB1->ulTaskID != 0 && pxTCB2->ulTaskID != 0) {
-                if (pxTCB1->ulPeriod > pxTCB2->ulPeriod) {
-                    /* Swap tasks */
-                    TaskControlBlock_t xTemp = *pxTCB1;
-                    *pxTCB1 = *pxTCB2;
-                    *pxTCB2 = xTemp;
-                }
+        TaskControlBlock_t *pxTCB = &xTaskList[i];
+
+        // Consider only valid, ready tasks.
+        if (pxTCB->ulTaskID != 0 && pxTCB->eCurrentState == TASK_STATE_READY) {
+            // If this task's deadline is sooner than the earliest we've found so far...
+            if (pxTCB->ulDeadlineTime < ulEarliestDeadline) {
+                // ...it becomes our new candidate.
+                ulEarliestDeadline = pxTCB->ulDeadlineTime;
+                pxTaskWithEarliestDeadline = (TaskHandle_t)pxTCB;
             }
         }
     }
-    
-    /* Assign priorities based on sorted order */
-    for (uint32_t i = 0; i < MAX_TASKS; i++) {
-        pxTCB = &xTaskList[i];
-        if (pxTCB->ulTaskID != 0) {
-            pxTCB->ulPriority = ulPriority++;
-            if (ulPriority >= MAX_PRIORITY_LEVELS) {
-                ulPriority = MAX_PRIORITY_LEVELS - 1;
-            }
-        }
-    }
+
+    return pxTaskWithEarliestDeadline;
 }
 
 /**
- * @brief Get highest priority ready task
- */
-static TaskHandle_t pxGetHighestPriorityReadyTask(void)
-{
-    for (uint32_t i = 0; i < MAX_PRIORITY_LEVELS; i++) {
-        if (pxReadyList[i] != NULL) {
-            return pxReadyList[i];
-        }
-    }
-    return NULL;
-}
-
-/**
- * @brief Add task to ready list based on priority
+ * @brief Add task to ready list (No-op for EDF)
+ * @note In this EDF implementation, a task's readiness is determined
+ * solely by its eCurrentState. There is no separate ready list to manage.
  */
 static void vAddTaskToReadyList(TaskHandle_t xTask)
 {
-    TaskControlBlock_t *pxTCB;
-    
-    if (xTask == NULL) {
-        return;
-    }
-    
-    pxTCB = (TaskControlBlock_t *)xTask;
-    
-    /* Check if task is already in ready list */
-    if (pxReadyList[pxTCB->ulPriority] == xTask) {
-        return;
-    }
-    
-    /* Add task to appropriate priority level */
-    pxReadyList[pxTCB->ulPriority] = xTask;
+    // This function is intentionally left empty.
+    (void)xTask; // Prevent compiler warnings for unused parameter.
 }
 
 /**
- * @brief Remove task from ready list
+ * @brief Remove task from ready list (No-op for EDF)
  */
 void vRemoveTaskFromReadyList(TaskHandle_t xTask)
 {
-    TaskControlBlock_t *pxTCB;
-    
-    if (xTask == NULL) {
-        return;
-    }
-    
-    pxTCB = (TaskControlBlock_t *)xTask;
-    
-    /* Remove task from ready list */
-    if (pxReadyList[pxTCB->ulPriority] == xTask) {
-        pxReadyList[pxTCB->ulPriority] = NULL;
-    }
+    // This function is intentionally left empty.
+    (void)xTask; // Prevent compiler warnings for unused parameter.
 }
 
 /**
@@ -209,6 +154,7 @@ static void vCheckDeadlines(void)
     for (uint32_t i = 0; i < MAX_TASKS; i++) {
         pxTCB = &xTaskList[i];
         
+        // --- NOTE --- This logic assumes ulDeadlineTime is correctly updated for every period.
         if (pxTCB->ulTaskID != 0 && pxTCB->eCurrentState == TASK_STATE_RUNNING) {
             /* Check if deadline is missed */
             if (ulSystemTick > pxTCB->ulDeadlineTime) {
@@ -232,15 +178,10 @@ static void vUpdateTaskTiming(TaskHandle_t xTask)
     
     pxTCB = (TaskControlBlock_t *)xTask;
     
-    /* Update execution time 
-    if (pxTCB->ulLastStartTime > 0) {
-        uint32_t ulExecutionTime = ulSystemTick - pxTCB->ulLastStartTime;
-        pxTCB->ulExecutionTime += ulExecutionTime;
-    } */
-    
     /* Update release and deadline times for periodic tasks */
     if (pxTCB->ulPeriod > 0) {
-        pxTCB->ulReleaseTime = ulSystemTick + pxTCB->ulPeriod;
+        pxTCB->ulReleaseTime += pxTCB->ulPeriod;
+        // This assumes ulDeadline is the relative deadline for the period.
         pxTCB->ulDeadlineTime = pxTCB->ulReleaseTime + pxTCB->ulDeadline;
     }
 }
@@ -278,7 +219,8 @@ void vSystemTickHandler(void)
             if (ulSystemTick >= pxTCB->ulReleaseTime) {
                 if (pxTCB->eCurrentState == TASK_STATE_BLOCKED) {
                     pxTCB->eCurrentState = TASK_STATE_READY;
-                    vAddTaskToReadyList((TaskHandle_t)pxTCB);
+                    // --- EDF CHANGE --- No longer need to add to a ready list.
+                    // vAddTaskToReadyList((TaskHandle_t)pxTCB); 
                 }
                 
                 /* Update timing for next release */
@@ -287,20 +229,26 @@ void vSystemTickHandler(void)
         }
     }
     
-    /* Trigger context switch if higher priority task is ready */
+    /* --- EDF CHANGE: Preemption Logic --- */
+    // Trigger context switch if a different task now has an earlier deadline.
     TaskHandle_t xCurrentTask = pxGetCurrentTask();
-    TaskHandle_t xNextTask = pxGetHighestPriorityReadyTask();
+    TaskHandle_t xNextTask = pxGetEarliestDeadlineTask();
     
     if (xNextTask != NULL && xNextTask != xCurrentTask) {
-        TaskControlBlock_t *pxCurrentTCB = (TaskControlBlock_t *)xCurrentTask;
-        TaskControlBlock_t *pxNextTCB = (TaskControlBlock_t *)xNextTask;
-        
-        if (pxNextTCB->ulPriority < pxCurrentTCB->ulPriority) {
-            /* Higher priority task is ready, trigger context switch */
-            pxCurrentTCB->eCurrentState = TASK_STATE_READY;
+        // If there's a current task running...
+        if (xCurrentTask != xIdleTask && xCurrentTask != NULL) {
+            TaskControlBlock_t *pxCurrentTCB = (TaskControlBlock_t *)xCurrentTask;
+            TaskControlBlock_t *pxNextTCB = (TaskControlBlock_t *)xNextTask;
             
-            vStartContextSwitch();
-            //vTriggerContextSwitch();
+            // Preempt if the new task's deadline is earlier than the current task's deadline.
+            if (pxNextTCB->ulDeadlineTime < pxCurrentTCB->ulDeadlineTime) {
+                pxCurrentTCB->eCurrentState = TASK_STATE_READY;
+                vStartContextSwitch();
+            }
+        } else {
+            // If the current task is idle or null, and a real task is ready, switch immediately.
+             vStartContextSwitch();
         }
     }
 }
+

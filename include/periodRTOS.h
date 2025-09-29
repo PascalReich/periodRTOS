@@ -109,6 +109,10 @@ void vTaskYield(void);
 void vTaskSuspend(TaskHandle_t xTask);
 void vTaskResume(TaskHandle_t xTask);
 void vRemoveTaskFromReadyList(TaskHandle_t xTask);
+void vContextSwitchOut(TaskControlBlock_t* task);
+void vContextSwitchIn(TaskControlBlock_t* task);
+void vInitializeTaskStack(TaskControlBlock_t *pxTCB);
+
 
 /* Monitoring functions */
 uint32_t ulGetContextSwitchCount(void);
@@ -129,7 +133,8 @@ void vStartContextSwitch(void);
 void vInitialContextSwitch(void);
 TaskHandle_t pxGetCurrentTask(void);
 void vSetCurrentTask(TaskHandle_t xTask);
-TaskHandle_t vSchedulerGetNextTask(void);
+TaskHandle_t vGetNextTask(void);
+TaskHandle_t vScheduleNextTask(void);
 void vTriggerContextSwitch(void);
 bool bIsValidTaskHandle(TaskHandle_t xTask);
 
@@ -144,6 +149,7 @@ void vLedToggle(uint32_t ulLed);
 /* Timer functions */
 void vSystickInit(void);
 uint32_t ulGetSystemTick(void);
+void vTaskBlock(uint32_t ulTicksToDelay);
 void vTaskDelay(uint32_t ulTicksToDelay);
 void vTaskDelayUntil(uint32_t *pulPreviousWakeTime, uint32_t ulTimeIncrement);
 
