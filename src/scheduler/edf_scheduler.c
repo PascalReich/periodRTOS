@@ -55,6 +55,10 @@ void vSchedulerInit(void)
     bSchedulerInitialized = true;
 }
 
+TaskHandle_t vGetNextTask(void) {
+    return pxGetEarliestDeadlineTask();
+}
+
 /**
  * @brief Get the next task to run (EDF scheduling)
  */
@@ -73,6 +77,11 @@ TaskHandle_t vScheduleNextTask(void)
     /* If no ready task, return idle task */
     if (xNextTask == NULL) {
         xNextTask = xIdleTask;
+    }
+
+    if (xNextTask != pxCurrentTaskTCB) {
+        if (pxCurrentTaskTCB) vContextSwitchOut(pxCurrentTaskTCB);
+        vContextSwitchIn(xNextTask);
     }
     
     /* Update current task */
