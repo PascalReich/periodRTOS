@@ -59,10 +59,14 @@ void vSchedulerInit(void)
     bSchedulerInitialized = true;
 }
 
+TaskHandle_t vGetNextTask(void) {
+    return pxGetHighestPriorityReadyTask();
+}
+
 /**
  * @brief Get the next task to run (Rate Monotonic scheduling)
  */
-TaskHandle_t vSchedulerGetNextTask(void)
+TaskHandle_t vScheduleNextTask(void)
 {
     TaskHandle_t xNextTask;
     
@@ -77,16 +81,22 @@ TaskHandle_t vSchedulerGetNextTask(void)
     if (xNextTask == NULL) {
         xNextTask = xIdleTask;
     }
+
+    if (xNextTask != pxCurrentTaskTCB) {
+        if (pxCurrentTaskTCB) vContextSwitchOut(pxCurrentTaskTCB);
+        vContextSwitchIn(xNextTask);
+    }
     
     /* Update current task */
     pxCurrentTaskTCB = xNextTask;
     
-    /* Update task state 
+    /* Update task state *
     if (xNextTask != xIdleTask) {
         TaskControlBlock_t *pxTCB = (TaskControlBlock_t *)xNextTask;
         pxTCB->eCurrentState = TASK_STATE_RUNNING;
         pxTCB->ulLastStartTime = ulSystemTick;
-    } */  // TODO lets let this be handled elsewhere
+    }   */
+    // TODO consider letting this be handled elsewhere
     
     return xNextTask;
 }
@@ -212,6 +222,7 @@ static void vCheckDeadlines(void)
         if (pxTCB->ulTaskID != 0 && pxTCB->eCurrentState == TASK_STATE_RUNNING) {
             /* Check if deadline is missed */
             if (ulSystemTick > pxTCB->ulDeadlineTime) {
+                vLedOn(6); // illuminate for deadline miss
                 pxTCB->ulDeadlineMissCount++;
                 pxTCB->bDeadlineMissed = true;
             }
@@ -240,7 +251,7 @@ static void vUpdateTaskTiming(TaskHandle_t xTask)
     
     /* Update release and deadline times for periodic tasks */
     if (pxTCB->ulPeriod > 0) {
-        pxTCB->ulReleaseTime = ulSystemTick + pxTCB->ulPeriod;
+        pxTCB->ulReleaseTime += pxTCB->ulPeriod;
         pxTCB->ulDeadlineTime = pxTCB->ulReleaseTime + pxTCB->ulDeadline;
     }
 }
@@ -255,7 +266,7 @@ void vSystemTickHandler(void)
     for (uint32_t i = 0; i < MAX_TASKS; i++) {
         uint32_t* value = ulCanaryAddresses[i];
         if (value && *value != STACK_CANARY) {
-            while(1) {;}
+            while(1) {;} // STACK OVERFLOW!!
         }
     }
     #endif
@@ -295,12 +306,12 @@ void vSystemTickHandler(void)
         TaskControlBlock_t *pxCurrentTCB = (TaskControlBlock_t *)xCurrentTask;
         TaskControlBlock_t *pxNextTCB = (TaskControlBlock_t *)xNextTask;
         
-        if (pxNextTCB->ulPriority < pxCurrentTCB->ulPriority) {
+        if (xCurrentTask == xIdleTask || pxNextTCB->ulPriority < pxCurrentTCB->ulPriority) {
             /* Higher priority task is ready, trigger context switch */
             pxCurrentTCB->eCurrentState = TASK_STATE_READY;
-            
-            vStartContextSwitch();
-            //vTriggerContextSwitch();
+
+            //return vStartContextSwitch();
+            vTriggerContextSwitch();
         }
     }
 }

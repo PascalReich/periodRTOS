@@ -116,7 +116,7 @@ void Reset_Handler()
 	while (len--) *(dest++) = 0;
 
 	//Jump to application
-	asm ("bl main");
+	asm ("b main");
 }
 
 /**
@@ -134,9 +134,9 @@ void NMI_Handler() {
 	while(1);
 }
 
-void PendSV_Handler() {
+/*void PendSV_Handler() {
 	while(1);
-}
+}*/
 
 
 void HardFaultHandler() {

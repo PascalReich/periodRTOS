@@ -12,6 +12,20 @@ else()
     message(STATUS "Native compilation")
 endif()
 
+set(SCHEDULER "rm" CACHE STRING "Select the scheduler algorithm (options: rm, dm, edf)")
+
+# --- Validate the user's choice ---
+# Create a list of allowed values.
+set(ALLOWED_SCHEDULERS "rm" "dm" "edf")
+# Check if the user's choice is in our list of allowed values.
+list(FIND ALLOWED_SCHEDULERS "${SCHEDULER}" SCHEDULER_IS_VALID)
+
+if(${SCHEDULER_IS_VALID} EQUAL -1)
+    # If list(FIND) returns -1, the item was not found.
+    # Stop configuration immediately and show an error.
+    message(FATAL_ERROR "Invalid scheduler '${SCHEDULER}'. Please choose from: ${ALLOWED_SCHEDULERS}")
+endif()
+
 # Compiler flags for ARM Cortex-M4
 set(MCU_FLAGS "-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MCU_FLAGS}")
@@ -30,8 +44,7 @@ include_directories(include)
 set(KERNEL_SOURCES
     src/kernel/kernel.c
     src/kernel/context_switch.S
-    src/scheduler/rm_scheduler.c
-#    src/tasks/task_manager.c
+    src/scheduler/${SCHEDULER}_scheduler.c # selectively include chosen scheduler
     src/timer/systick.c
     src/monitor/monitor.c
     src/hal/stm32_hal.c

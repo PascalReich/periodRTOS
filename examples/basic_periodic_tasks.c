@@ -31,7 +31,8 @@ static void vTask1(void *pvParameters)
         vLedOn(0);
         
         /* Simulate some work */
-        for (volatile int i = 0; i < 1000; i++);
+        //for (volatile int i = 0; i < 1000; i++);
+        vTaskBlock(40);
         
         ulTask1Counter++;
 
@@ -58,7 +59,8 @@ static void vTask2(void *pvParameters)
         vLedOn(1);
         
         /* Simulate some work */
-        for (volatile int i = 0; i < 2000; i++);
+        //for (volatile int i = 0; i < 2000; i++);
+        vTaskBlock(200);
         
         ulTask2Counter++;
 
@@ -85,7 +87,8 @@ static void vTask3(void *pvParameters)
         vLedOn(2);
         
         /* Simulate some work */
-        for (volatile int i = 0; i < 3000; i++);
+        //for (volatile int i = 0; i < 3000; i++);
+        vTaskBlock(200);
         
         ulTask3Counter++;
         
@@ -118,13 +121,13 @@ void vIdleTask(void *pvParameters)
 {
     vTaskDelay(1);
 
-    while (1)
+    /*while (1)
     {
-        /* code */
+        /* code *
         vLedOn(3);
         vTaskYield();
         vLedOff(3);
-    }
+    }*/
     
     
     while (1) {
@@ -132,15 +135,19 @@ void vIdleTask(void *pvParameters)
         vLedOn(3);
         
         /* Simulate idle work */
-        for (volatile int i = 0; i < 100; i++);
+        //for (volatile int i = 0; i < 100; i++);
+
+        vTaskBlock(1);
 
         vLedOff(3);
+
+        vTaskBlock(1);
         
         /* Yield to other tasks */
-        vTaskYield();
+        //vTaskYield();
         
         /* Small delay to prevent busy waiting */
-        vTaskDelay(10);
+        //vTaskDelay(10);
     }
 }
 

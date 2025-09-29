@@ -15,6 +15,7 @@ static uint32_t ulNextTaskID = 1;
 static uint32_t ulTaskCount = 0;
 static SchedulerState_t eSchedulerState = SCHEDULER_NOT_STARTED;
 SystemMonitor_t xSystemMonitor = {0};
+bool first_switch_done = false;
 
 /* Each task gets a fixed stack size allocated at compile time */
 //uint32_t ulStackMemory[MAX_TASKS][DEFAULT_STACK_SIZE / sizeof(uint32_t)];
@@ -28,7 +29,7 @@ uint32_t * ulCanaryAddresses[MAX_TASKS];
 
 /* External function prototypes */
 extern void vSchedulerInit(void);
-extern TaskHandle_t vSchedulerGetNextTask(void);
+extern TaskHandle_t vScheduleNextTask(void);
 extern void vRemoveTaskFromReadyList(TaskHandle_t xTask);
 extern void vTriggerContextSwitch(void);
 
@@ -146,7 +147,7 @@ void vTaskStartScheduler(void)
     xSystemMonitor.eSchedulerState = SCHEDULER_RUNNING;
 
     /*Get next task*/
-    TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
+    /*TaskControlBlock_t* next = (TaskControlBlock_t*) vScheduleNextTask();
 
     vSetCurrentTask(next);
 
@@ -158,7 +159,23 @@ void vTaskStartScheduler(void)
     );
     
     /* Start the first task */
-    vInitialContextSwitch();
+    //vInitialContextSwitch();
+    vTriggerContextSwitch();
+}
+
+void vContextSwitchOut(TaskControlBlock_t* task) {
+    task->ulExecutionTime += ulSystemTick - task->ulLastStartTime;
+    if (task->eCurrentState == TASK_STATE_RUNNING && task != xIdleTask) {
+        task->eCurrentState = TASK_STATE_BLOCKED;
+    }
+}
+
+void vContextSwitchIn(TaskControlBlock_t* task) {
+    xSystemMonitor.ulTotalContextSwitches++;
+    task->eCurrentState = TASK_STATE_RUNNING;
+    task->ulLastStartTime = ulSystemTick;
+    task->ulContextSwitchCount++;
+    vSetCurrentTask(task);
 }
 
 /**
@@ -168,7 +185,7 @@ void vStartContextSwitch() {
 
     /*Get task*/
     TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
-    TaskControlBlock_t* next = (TaskControlBlock_t*) vSchedulerGetNextTask();
+    TaskControlBlock_t* next = (TaskControlBlock_t*) vScheduleNextTask();
 
     curr->ulExecutionTime += ulSystemTick - curr->ulLastStartTime;
     //if (curr->eCurrentState == TASK_STATE_RUNNING) curr->eCurrentState = TASK_STATE_READY; // move to ready iff. preempted.
@@ -204,10 +221,11 @@ void vTaskYield(void)
     if (eSchedulerState == SCHEDULER_RUNNING) {
         TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
 
-        if (curr->ulTaskID || vSchedulerGetNextTask() != curr) {
+        if (curr->ulTaskID || vGetNextTask() != curr) {
             curr->eCurrentState = TASK_STATE_BLOCKED;
             vRemoveTaskFromReadyList(curr);
-            vStartContextSwitch();
+            vTriggerContextSwitch();
+            //vStartContextSwitch();
         }
     }
 }
@@ -226,6 +244,7 @@ void TaskWrapper(void) {
 
     curr->taskFlags = 1;
     //curr->pxTopOfStack = curr->pxStackBase + (curr->ulStackSize * 4) - 10;
+    //vInitializeTaskStack(curr);
     return vTaskYield();
 
 }
@@ -364,9 +383,33 @@ static void vInitializeTaskControlBlock(TaskControlBlock_t *pxTCB,
     pxTCB->bDeadlineMissed = false;
 }
 
-static void vInitializeTaskStack(void) {
-    TaskControlBlock_t* curr = (TaskControlBlock_t*) pxGetCurrentTask();
-    curr->pxTopOfStack = curr->pxStackBase + (curr->ulStackSize * 4) - 10;
+void vInitializeTaskStack(TaskControlBlock_t *pxTCB) {
+    // Assume stack grows down, stack_top points to the end of a statically
+    uint32_t *stk = pxTCB->pxStackMax;
+
+    if ((uint32_t) stk % 8) stk = (uint32_t*) (((uint32_t) stk) - 4);
+    // allocated stack region for this task.
+
+    // xPSR, PC, LR, R12, R3, R2, R1, R0
+    /* Hardware-saved context (the basic frame) ------------------------- */
+    *(--stk) = 0x01000000;        // xPSR  (Thumb bit set)
+    
+    *(--stk) = (uint32_t) TaskWrapper;        //PC?!  /// LR   (EXC_RETURN to Thread/PSP)
+    *(--stk) = (uint32_t) TaskWrapper;  //LR?! /// PC   (entry point)
+    *(--stk) = 0x00000000;        // R12
+    *(--stk) = 0x00000000;        // R3
+    *(--stk) = 0x00000000;        // R2
+    *(--stk) = 0x00000000;        // R1
+    *(--stk) = 0x00000000;    // R0   (argument if desired)
+
+    /* Software-saved context (callee-saved regs) -----------------------
+    R4–R11, so that the first LDMIA restores them cleanly.
+    */
+    for (int i = 4; i <= 11; ++i)
+        *(--stk) = 0x00000000;
+
+    pxTCB->pxTopOfStack = stk;   // Save as initial PSP value
+
 }
 
 /**
@@ -399,11 +442,15 @@ static void vSetupTaskStack(TaskControlBlock_t *pxTCB)
     unsigned int bytes = pxTCB->ulStackSize * sizeof(uint32_t);
     
     if (ulGlobalStackPtr + bytes < MAX_TASKS * DEFAULT_STACK_SIZE) {
-        pxTCB->pxTopOfStack = pxTCB->pxStackBase + bytes - 1;
+
+        
+        pxTCB->pxStackMax = pxTCB->pxStackBase + bytes - 1;
+        
+        /*pxTCB->pxTopOfStack = pxTCB->pxStackBase + bytes - 1;
 
         pxTCB->pxTopOfStack -= 9; // compensate for 8 registers and return pointer
-        pxTCB->pxStackMax = pxTCB->pxTopOfStack;
-        *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;
+        *pxTCB->pxTopOfStack  = (unsigned int)pxTCB->pxTaskCode;*/
+        vInitializeTaskStack(pxTCB);
 
         ulGlobalStackPtr += bytes;
 

@@ -35,6 +35,10 @@ void vSystickInit(void)
  */
 void SysTick_Handler(void)
 {
+    /* --- Manual Interrupt Flag Clear --- */
+    // Reading the SysTick->CTRL register automatically clears the COUNTFLAG bit.
+    // This acknowledges the interrupt at the peripheral level.
+    //(void)SysTick->CTRL;
     /* Call system tick handler */
     vSystemTickHandler();
 }
@@ -45,6 +49,19 @@ void SysTick_Handler(void)
 uint32_t ulGetSystemTick(void)
 {
     return ulSystemTick;
+}
+
+/**
+ * @brief Block for specified number of ticks
+ */
+void vTaskBlock(uint32_t ulTicksToDelay)
+{
+    uint32_t ulStartTick = ulSystemTick;
+    
+    while ((ulSystemTick - ulStartTick) < ulTicksToDelay) {
+        /* Yield to other tasks */
+        //vTaskYield();
+    }
 }
 
 /**
